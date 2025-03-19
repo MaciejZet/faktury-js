@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Rachunków</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Biblioteka do generowania PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="header-controls">
+        <button id="themeSwitcher" class="theme-switch">🌙</button>
+    </div>
+    <div class="container">
+        <h1>Generator Rachunków</h1>
+        
+        <div class="app-container">
+            <!-- Formularz -->
+            <div class="form-container">
+                <form id="invoiceForm">
+                    <div class="form-section">
+                        <h2>Dane sprzedawcy</h2>
+                        <div class="form-group">
+                            <label for="sellerName">Nazwa/Imię i nazwisko:</label>
+                            <input type="text" id="sellerName" name="sellerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellerAddress">Adres:</label>
+                            <textarea id="sellerAddress" name="sellerAddress" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellerNIP">NIP:</label>
+                            <input type="text" id="sellerNIP" name="sellerNIP" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Dane nabywcy</h2>
+                        <div class="form-group">
+                            <label for="buyerName">Nazwa/Imię i nazwisko:</label>
+                            <input type="text" id="buyerName" name="buyerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="buyerAddress">Adres:</label>
+                            <textarea id="buyerAddress" name="buyerAddress" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="buyerNIP">NIP:</label>
+                            <input type="text" id="buyerNIP" name="buyerNIP" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Szczegóły rachunku</h2>
+                        <div class="form-group">
+                            <label for="invoiceNumber">Numer rachunku:</label>
+                            <input type="text" id="invoiceNumber" name="invoiceNumber" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="issueDate">Data wystawienia:</label>
+                            <input type="date" id="issueDate" name="issueDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dueDate">Termin płatności:</label>
+                            <input type="date" id="dueDate" name="dueDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Pozycje rachunku</h2>
+                        <table id="itemsTable">
+                            <thead>
+                                <tr>
+                                    <th>Opis</th>
+                                    <th>Ilość</th>
+                                    <th>Cena jedn.</th>
+                                    <th>Suma</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTableBody">
+                                <!-- Pozycje dodawane dynamicznie przez JavaScript -->
+                            </tbody>
+                        </table>
+                        <button type="button" id="addItemButton">Dodaj pozycję</button>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="generatePdfButton">Generuj PDF</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Podgląd rachunku -->
+            <div class="preview-container">
+                <div class="preview-toolbar">
+                    <button id="uploadLogo">Dodaj logo</button>
+                    <input type="file" id="logoInput" accept="image/*" hidden>
+                </div>
+                <h2>Podgląd rachunku</h2>
+                <div id="invoicePreview" class="invoice-preview">
+                    <!-- Tutaj będzie dynamicznie generowany podgląd rachunku -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

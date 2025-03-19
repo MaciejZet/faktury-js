@@ -1,0 +1,267 @@
+:root {
+    --primary-color: #2563eb;
+    --bg-color: #f8fafc;
+    --text-color: #1e293b;
+    --border-color: #e2e8f0;
+    --form-bg: #ffffff;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+[data-theme="dark"] {
+    --bg-color: #0f172a;
+    --text-color: #f1f5f9;
+    --border-color: #334155;
+    --form-bg: #1e293b;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.5;
+    margin: 0;
+    padding: 2rem;
+}
+
+.app-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+.form-container {
+    background: var(--form-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.preview-container {
+    position: sticky;
+    top: 2rem;
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: var(--shadow);
+}
+
+.invoice-preview {
+    background: white;
+    min-height: 29.7cm;
+    width: 21cm;
+    padding: 2cm;
+    margin: 0 auto;
+    box-shadow: var(--shadow);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.invoice-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.company-logo {
+    max-width: 200px;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+.invoice-parties {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    margin-bottom: 4rem;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+}
+
+.items-table th {
+    background: #f8fafc;
+    padding: 1rem;
+    text-align: left;
+}
+
+.items-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.invoice-summary {
+    margin-left: auto;
+    width: 300px;
+    margin-top: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-group input, .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--form-bg);
+    color: var(--text-color);
+}
+
+button#addItemButton {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+button#addItemButton:hover {
+    background-color: #0b7dda;
+}
+
+#itemsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+#itemsTable th, #itemsTable td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+#itemsTable th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.item-row input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.item-row {
+    transition: all 0.3s ease;
+}
+
+.item-row:hover {
+    background: rgba(33, 150, 243, 0.1);
+}
+
+.delete-item-btn {
+    background: #ff4444;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    transition: transform 0.2s;
+}
+
+.delete-item-btn:hover {
+    transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.invoice-preview {
+    padding: 30px;
+    background: white;
+    font-family: 'Arial', sans-serif;
+    width: 21cm;
+    min-height: 29.7cm;
+    margin: 0 auto;
+}
+
+/* Style tabeli faktury */
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.invoice-table th {
+    padding: 2px 6px 6px 6px;
+    text-align: center;
+    border: 0.5px solid black;
+    background-color: #e2e2e2;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.invoice-table td {
+    padding: 2px 6px 6px 6px;
+    border: 0.5px solid black;
+    line-height: 1.3;
+    font-size: 12pt;
+}
+
+.invoice-header {
+    display: grid;
+    grid-template-columns: 50% 6% 44%;
+    margin-bottom: 20px;
+}
+
+.invoice-party {
+    border-top: 0.5px solid black;
+    background-color: #e2e2e2;
+    padding: 4px;
+    font-size: 12pt;
+    line-height: 1.3;
+}
+
+.party-details {
+    padding: 8px 0;
+    font-size: 12pt;
+    line-height: 1.3;
+}
+
+.invoice-title {
+    text-align: center;
+    font-weight: 400;
+    font-size: 14pt;
+    line-height: 1.1;
+    margin: 20px 0;
+}
+
+.payment-info {
+    display: grid;
+    grid-template-columns: 46% 8% 46%;
+    margin: 20px 0;
+}
+
+.payment-details td {
+    border-top: 0.5px solid black;
+    padding: 3px 0;
+    font-size: 12pt;
+    line-height: 1.3;
+}
+
+.signature-area {
+    text-align: center;
+    margin-top: 40px;
+    border-top: 0.5px solid black;
+    padding-top: 10px;
+}
