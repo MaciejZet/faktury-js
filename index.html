@@ -44,6 +44,10 @@
                             <label for="sellerBankName">Nazwa banku:</label>
                             <input type="text" id="sellerBankName" name="sellerBankName">
                         </div>
+                        <div class="contact-actions">
+                            <button type="button" id="saveSellerButton" class="secondary-button"><i class="fas fa-save"></i> Zapisz dane sprzedawcy</button>
+                            <button type="button" id="loadSellerButton" class="secondary-button"><i class="fas fa-folder-open"></i> Wczytaj dane sprzedawcy</button>
+                        </div>
                     </div>
 
                     <div class="form-section">
@@ -59,6 +63,10 @@
                         <div class="form-group">
                             <label for="buyerNIP">NIP:</label>
                             <input type="text" id="buyerNIP" name="buyerNIP" required>
+                        </div>
+                        <div class="contact-actions">
+                            <button type="button" id="saveBuyerButton" class="secondary-button"><i class="fas fa-save"></i> Zapisz dane nabywcy</button>
+                            <button type="button" id="loadBuyerButton" class="secondary-button"><i class="fas fa-folder-open"></i> Wczytaj dane nabywcy</button>
                         </div>
                     </div>
 
@@ -158,6 +166,26 @@
             <div class="modal-actions">
                 <button id="confirmTemplateAction" class="primary-button">Zapisz</button>
                 <button id="cancelTemplateAction" class="secondary-button">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal dla zapisywania/wczytywania kontaktów -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button contact-modal-close-button">&times;</span>
+            <h3 id="contactModalTitle">Zapisz kontakt</h3>
+            <div class="form-group" id="contactNameFormGroup">
+                <label for="contactName">Nazwa wpisu:</label>
+                <input type="text" id="contactName" name="contactName" required>
+            </div>
+            <div id="contactsListContainer">
+                <h4>Zapisane kontakty:</h4>
+                <div id="contactsList" class="templates-list"></div>
+            </div>
+            <div class="modal-actions">
+                <button id="confirmContactAction" class="primary-button">Zapisz</button>
+                <button id="cancelContactAction" class="secondary-button">Anuluj</button>
             </div>
         </div>
     </div>

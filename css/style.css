@@ -502,3 +502,15 @@ button#addItemButton:hover {
 *, *::before, *::after {
     transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 }
+
+/* Style dla przycisków akcji kontaktów */
+.contact-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.contact-actions button {
+    padding: 0.6rem 1rem;
+    font-size: 0.875rem;
+}

@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveTemplateButton = document.getElementById("saveTemplateButton");
     const loadTemplateButton = document.getElementById("loadTemplateButton");
     const templateModal = document.getElementById("templateModal");
-    const templateName = document.getElementById("templateName");
+    const templateNameInput = document.getElementById("templateName");
     const templatesList = document.getElementById("templatesList");
     const confirmTemplateAction = document.getElementById("confirmTemplateAction");
     const cancelTemplateAction = document.getElementById("cancelTemplateAction");
@@ -17,9 +17,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const toastContainer = document.getElementById("toastContainer");
     const printPreviewBtn = document.getElementById("printPreviewBtn");
 
-    let currentAction = "save"; // Domyślna akcja dla modalu (save/load)
+    const contactModal = document.getElementById("contactModal");
+    const contactModalTitle = document.getElementById("contactModalTitle");
+    const contactNameInput = document.getElementById("contactName");
+    const contactsListContainer = document.getElementById("contactsListContainer");
+    const contactsList = document.getElementById("contactsList");
+    const confirmContactAction = document.getElementById("confirmContactAction");
+    const cancelContactAction = document.getElementById("cancelContactAction");
+    const contactModalCloseButton = document.querySelector(".contact-modal-close-button");
 
-    // Dodawanie nowej pozycji
+    const saveSellerButton = document.getElementById('saveSellerButton');
+    const loadSellerButton = document.getElementById('loadSellerButton');
+    const saveBuyerButton = document.getElementById('saveBuyerButton');
+    const loadBuyerButton = document.getElementById('loadBuyerButton');
+
+    let currentAction = "save";
+    let currentContactAction = "save";
+    let currentContactType = "seller";
+
     addItemButton.addEventListener("click", () => {
         addNewInvoiceRow();
     });
@@ -36,10 +51,8 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         itemsTableBody.appendChild(row);
 
-        // Dodawanie animacji przy dodawaniu pozycji
         row.style.animation = 'fadeIn 0.3s ease-out';
 
-        // Obsługa usuwania pozycji
         row.querySelector(".delete-item-btn").addEventListener("click", () => {
             row.style.animation = 'fadeOut 0.3s ease-out';
             setTimeout(() => {
@@ -48,12 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 300);
         });
 
-        // Aktualizacja podglądu przy zmianie danych
         row.querySelectorAll("input").forEach(input => {
             input.addEventListener("input", updatePreview);
         });
 
-        // Automatyczne przeliczanie sumy
         const quantityInput = row.querySelector(".item-quantity");
         const priceInput = row.querySelector(".item-price");
         
@@ -68,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Funkcja do wyświetlania komunikatów
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
@@ -84,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 3000);
     }
 
-    // Aktualizacja podglądu rachunku
     function updatePreview() {
         let totalSum = 0;
         const items = Array.from(itemsTableBody.querySelectorAll(".item-row")).map(row => {
@@ -104,7 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const paymentMethod = document.getElementById("paymentMethod").value;
         const placeOfIssue = document.getElementById("placeOfIssue").value;
 
-        // Mapowanie opcji płatności na pełne nazwy
         const paymentMethods = {
             'przelew': 'Przelew bankowy',
             'gotowka': 'Gotówka',
@@ -112,7 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
             'blik': 'BLIK'
         };
 
-        // Generowanie podglądu HTML
         invoicePreview.innerHTML = `
             <div class="invoice-header">
                 ${logoHtml ? `<div>${logoHtml}</div>` : '<div></div>'}
@@ -222,7 +229,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     }
 
-    // Pobieranie symbolu waluty
     function getCurrencySymbol() {
         const currencies = {
             'PLN': 'PLN',
@@ -234,9 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return currencies[currency.value] || 'PLN';
     }
 
-    // Walidacja NIP
     function validateNIP(nip) {
-        // Uproszczona walidacja - można rozbudować
         nip = nip.replace(/[^0-9]/g, '');
         
         if (nip.length !== 10) return false;
@@ -250,7 +254,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return (sum % 11) === parseInt(nip[9]);
     }
 
-    // Formatowanie kwot z uwzględnieniem waluty
     function formatAmount(amount) {
         return new Intl.NumberFormat('pl-PL', {
             style: 'currency',
@@ -259,208 +262,225 @@ document.addEventListener("DOMContentLoaded", () => {
         }).format(amount);
     }
 
-    // Formatowanie dat
     function formatDate(dateString) {
         return new Intl.DateTimeFormat('pl-PL').format(new Date(dateString));
     }
 
-    // Zmiana waluty
     currency.addEventListener('change', updatePreview);
 
-    // Automatyczne ustawianie daty
     document.getElementById('issueDate').valueAsDate = new Date();
     document.getElementById('dueDate').valueAsDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
-    // Dodanie pierwszej pozycji automatycznie przy ładowaniu
     addNewInvoiceRow();
 
-    // Obsługa modalu
     function openModal(action) {
         currentAction = action;
-        templateModal.style.display = 'flex';
-        templateName.value = '';
-        
+        templateModal.style.display = "flex";
         if (action === 'save') {
-            modalTitle.textContent = 'Zapisz szablon';
-            confirmTemplateAction.textContent = 'Zapisz';
+            modalTitle.textContent = "Zapisz szablon";
+            confirmTemplateAction.textContent = "Zapisz";
+            templateNameInput.style.display = 'block';
             templatesList.style.display = 'none';
         } else {
-            modalTitle.textContent = 'Wczytaj szablon';
-            confirmTemplateAction.textContent = 'Wczytaj';
-            loadTemplatesList();
+            modalTitle.textContent = "Wczytaj szablon";
+            confirmTemplateAction.textContent = "Wczytaj";
+            templateNameInput.style.display = 'none';
             templatesList.style.display = 'block';
+            loadTemplatesList();
         }
     }
 
     function closeModal() {
-        templateModal.style.display = 'none';
+        templateModal.style.display = "none";
     }
 
-    function loadTemplatesList() {
-        templatesList.innerHTML = '';
-        const templates = getTemplates();
-        
-        if (templates.length === 0) {
-            templatesList.innerHTML = '<p>Brak zapisanych szablonów</p>';
-            return;
-        }
-        
-        templates.forEach(template => {
-            const item = document.createElement('div');
-            item.className = 'template-item';
-            item.innerHTML = `
-                <span>${template.name}</span>
-                <div class="template-actions">
-                    <button class="load-template" data-id="${template.id}"><i class="fas fa-check"></i></button>
-                    <button class="delete-template" data-id="${template.id}"><i class="fas fa-trash"></i></button>
-                </div>
-            `;
-            templatesList.appendChild(item);
-        });
-        
-        // Event listenery dla przycisków
-        document.querySelectorAll('.load-template').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = e.currentTarget.dataset.id;
-                loadTemplate(id);
-                closeModal();
-            });
-        });
-        
-        document.querySelectorAll('.delete-template').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = e.currentTarget.dataset.id;
-                deleteTemplate(id);
-                loadTemplatesList(); // Odświeżenie listy
-            });
-        });
-    }
-
-    // Funkcje do operacji na szablonach
-    function getTemplates() {
-        const templates = localStorage.getItem('invoiceTemplates');
-        return templates ? JSON.parse(templates) : [];
-    }
-    
-    function saveTemplate() {
-        const name = templateName.value.trim();
-        if (!name) {
-            showToast('Podaj nazwę szablonu', 'error');
-            return;
-        }
-        
-        const formData = {
-            id: Date.now().toString(),
-            name: name,
-            sellerInfo: {
-                name: document.getElementById("sellerName").value,
-                address: document.getElementById("sellerAddress").value,
-                nip: document.getElementById("sellerNIP").value,
-                bankAccount: document.getElementById("sellerBankAccount").value,
-                bankName: document.getElementById("sellerBankName").value
-            },
-            buyerInfo: {
-                name: document.getElementById("buyerName").value,
-                address: document.getElementById("buyerAddress").value,
-                nip: document.getElementById("buyerNIP").value
-            },
-            invoiceDetails: {
-                number: document.getElementById("invoiceNumber").value,
-                currency: currency.value,
-                paymentMethod: document.getElementById("paymentMethod").value,
-                placeOfIssue: document.getElementById("placeOfIssue").value
-            }
-        };
-        
-        const templates = getTemplates();
-        templates.push(formData);
-        localStorage.setItem('invoiceTemplates', JSON.stringify(templates));
-        
-        showToast(`Szablon "${name}" został zapisany`);
-        closeModal();
-    }
-    
-    function loadTemplate(id) {
-        const templates = getTemplates();
-        const template = templates.find(t => t.id === id);
-        
-        if (!template) {
-            showToast('Nie znaleziono szablonu', 'error');
-            return;
-        }
-        
-        // Wypełnienie formularza danymi z szablonu
-        document.getElementById("sellerName").value = template.sellerInfo.name || '';
-        document.getElementById("sellerAddress").value = template.sellerInfo.address || '';
-        document.getElementById("sellerNIP").value = template.sellerInfo.nip || '';
-        document.getElementById("sellerBankAccount").value = template.sellerInfo.bankAccount || '';
-        document.getElementById("sellerBankName").value = template.sellerInfo.bankName || '';
-        
-        document.getElementById("buyerName").value = template.buyerInfo.name || '';
-        document.getElementById("buyerAddress").value = template.buyerInfo.address || '';
-        document.getElementById("buyerNIP").value = template.buyerInfo.nip || '';
-        
-        if (template.invoiceDetails) {
-            document.getElementById("invoiceNumber").value = template.invoiceDetails.number || '';
-            currency.value = template.invoiceDetails.currency || 'PLN';
-            document.getElementById("paymentMethod").value = template.invoiceDetails.paymentMethod || 'przelew';
-            document.getElementById("placeOfIssue").value = template.invoiceDetails.placeOfIssue || 'Wrocław';
-        }
-        
-        showToast(`Szablon "${template.name}" został wczytany`);
-        updatePreview();
-    }
-    
-    function deleteTemplate(id) {
-        const templates = getTemplates();
-        const index = templates.findIndex(t => t.id === id);
-        
-        if (index !== -1) {
-            const deletedName = templates[index].name;
-            templates.splice(index, 1);
-            localStorage.setItem('invoiceTemplates', JSON.stringify(templates));
-            showToast(`Szablon "${deletedName}" został usunięty`);
-        }
-    }
-
-    // Event listenery dla modalu
     saveTemplateButton.addEventListener('click', () => openModal('save'));
     loadTemplateButton.addEventListener('click', () => openModal('load'));
     closeButton.addEventListener('click', closeModal);
     window.addEventListener('click', (e) => {
-        if (e.target === templateModal) closeModal();
+        if (e.target === templateModal) {
+            closeModal();
+        }
+        if (e.target === contactModal) {
+            closeContactModal();
+        }
     });
     
     confirmTemplateAction.addEventListener('click', () => {
         if (currentAction === 'save') {
             saveTemplate();
-        } else {
-            // W przypadku 'load' używamy przycisków przy szablonach
-        }
+        } 
+        closeModal();
     });
     
     cancelTemplateAction.addEventListener('click', closeModal);
 
-    // Walidacja formularza przed generowaniem PDF
+    function openContactModal(action, type) {
+        currentContactAction = action;
+        currentContactType = type;
+        contactModal.style.display = "flex";
+        contactsListContainer.style.display = 'none';
+        contactNameInput.parentElement.style.display = 'block';
+
+        if (action === 'save') {
+            contactModalTitle.textContent = type === 'seller' ? "Zapisz dane sprzedawcy" : "Zapisz dane nabywcy";
+            confirmContactAction.textContent = "Zapisz";
+            contactNameInput.value = '';
+        } else {
+            contactModalTitle.textContent = type === 'seller' ? "Wczytaj dane sprzedawcy" : "Wczytaj dane nabywcy";
+            confirmContactAction.textContent = "Wczytaj";
+            contactNameInput.parentElement.style.display = 'none';
+            contactsListContainer.style.display = 'block';
+            loadContactsList(type);
+        }
+    }
+
+    function closeContactModal() {
+        contactModal.style.display = "none";
+    }
+
+    function getContacts(type) {
+        return JSON.parse(localStorage.getItem(type === 'seller' ? 'sellerContacts' : 'buyerContacts')) || [];
+    }
+
+    function saveContact() {
+        const contactName = contactNameInput.value.trim();
+        if (!contactName) {
+            showToast("Nazwa wpisu nie może być pusta.", 'error');
+            return;
+        }
+
+        const contacts = getContacts(currentContactType);
+        if (contacts.some(c => c.name === contactName)) {
+            if (!confirm(`Kontakt o nazwie "${contactName}" już istnieje. Czy chcesz go nadpisać?`)) {
+                return;
+            }
+        }
+
+        let contactData = {};
+        if (currentContactType === 'seller') {
+            contactData = {
+                name: contactName,
+                sellerName: document.getElementById('sellerName').value,
+                sellerAddress: document.getElementById('sellerAddress').value,
+                sellerNIP: document.getElementById('sellerNIP').value,
+                sellerBankAccount: document.getElementById('sellerBankAccount').value,
+                sellerBankName: document.getElementById('sellerBankName').value,
+            };
+        } else {
+            contactData = {
+                name: contactName,
+                buyerName: document.getElementById('buyerName').value,
+                buyerAddress: document.getElementById('buyerAddress').value,
+                buyerNIP: document.getElementById('buyerNIP').value,
+            };
+        }
+
+        const newContacts = contacts.filter(c => c.name !== contactName);
+        newContacts.push(contactData);
+        localStorage.setItem(currentContactType === 'seller' ? 'sellerContacts' : 'buyerContacts', JSON.stringify(newContacts));
+        showToast("Dane zapisano pomyślnie.");
+        closeContactModal();
+    }
+
+    function loadContact(name, type) {
+        const contacts = getContacts(type);
+        const contact = contacts.find(c => c.name === name);
+        if (contact) {
+            if (type === 'seller') {
+                document.getElementById('sellerName').value = contact.sellerName || '';
+                document.getElementById('sellerAddress').value = contact.sellerAddress || '';
+                document.getElementById('sellerNIP').value = contact.sellerNIP || '';
+                document.getElementById('sellerBankAccount').value = contact.sellerBankAccount || '';
+                document.getElementById('sellerBankName').value = contact.sellerBankName || '';
+            } else {
+                document.getElementById('buyerName').value = contact.buyerName || '';
+                document.getElementById('buyerAddress').value = contact.buyerAddress || '';
+                document.getElementById('buyerNIP').value = contact.buyerNIP || '';
+            }
+            showToast(`Dane dla "${name}" wczytano.`);
+            updatePreview();
+        } else {
+            showToast(`Nie znaleziono danych dla "${name}".`, 'error');
+        }
+        closeContactModal();
+    }
+
+    function deleteContact(name, type) {
+        if (!confirm(`Czy na pewno chcesz usunąć kontakt "${name}"?`)) return;
+        let contacts = getContacts(type);
+        contacts = contacts.filter(c => c.name !== name);
+        localStorage.setItem(type === 'seller' ? 'sellerContacts' : 'buyerContacts', JSON.stringify(contacts));
+        showToast(`Kontakt "${name}" usunięto.`);
+        loadContactsList(type);
+    }
+
+    function loadContactsList(type) {
+        contactsList.innerHTML = '';
+        const contacts = getContacts(type);
+        if (contacts.length === 0) {
+            contactsList.innerHTML = '<p>Brak zapisanych kontaktów.</p>';
+            return;
+        }
+        contacts.forEach(contact => {
+            const item = document.createElement('div');
+            item.classList.add('template-item');
+            item.innerHTML = `
+                <span>${contact.name}</span>
+                <div class="template-actions">
+                    <button class="load-contact" data-name="${contact.name}" data-type="${type}"><i class="fas fa-download"></i> Wczytaj</button>
+                    <button class="delete-contact" data-name="${contact.name}" data-type="${type}"><i class="fas fa-trash"></i> Usuń</button>
+                </div>
+            `;
+            contactsList.appendChild(item);
+        });
+
+        contactsList.querySelectorAll('.load-contact').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const name = e.target.closest('button').dataset.name;
+                const contactType = e.target.closest('button').dataset.type;
+                loadContact(name, contactType);
+            });
+        });
+        contactsList.querySelectorAll('.delete-contact').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const name = e.target.closest('button').dataset.name;
+                const contactType = e.target.closest('button').dataset.type;
+                deleteContact(name, contactType);
+            });
+        });
+    }
+
+    saveSellerButton.addEventListener('click', () => openContactModal('save', 'seller'));
+    loadSellerButton.addEventListener('click', () => openContactModal('load', 'seller'));
+    saveBuyerButton.addEventListener('click', () => openContactModal('save', 'buyer'));
+    loadBuyerButton.addEventListener('click', () => openContactModal('load', 'buyer'));
+
+    confirmContactAction.addEventListener('click', () => {
+        if (currentContactAction === 'save') {
+            saveContact();
+        }
+    });
+
+    cancelContactAction.addEventListener('click', closeContactModal);
+    contactModalCloseButton.addEventListener('click', closeContactModal);
+
     invoiceForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         
         const sellerNIP = document.getElementById("sellerNIP").value;
         const buyerNIP = document.getElementById("buyerNIP").value;
         
-        // Sprawdź czy są pozycje na fakturze
         if (itemsTableBody.querySelectorAll(".item-row").length === 0) {
             showToast("Dodaj przynajmniej jedną pozycję do rachunku!", 'error');
             return;
         }
 
-        // Walidacja NIP (opcjonalna - można usunąć, jeśli nie jest potrzebna)
         if (!validateNIP(sellerNIP) || !validateNIP(buyerNIP)) {
             showToast("Nieprawidłowy numer NIP! Upewnij się, że podany NIP jest poprawny.", 'error');
             return;
         }
 
-        // Animacja podczas generowania PDF
         const generateBtn = document.getElementById("generatePdfButton");
         const originalText = generateBtn.innerHTML;
         generateBtn.disabled = true;
@@ -485,7 +505,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Drukowanie podglądu
     printPreviewBtn.addEventListener("click", () => {
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
@@ -518,7 +537,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `);
     });
 
-    // Obsługa logo
     const uploadLogo = document.getElementById('uploadLogo');
     const logoInput = document.getElementById('logoInput');
     
@@ -535,10 +553,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Inicjalizacja podglądu formularza
     updatePreview();
 
-    // Automatyczne zapisywanie w localStorage
     const debounce = (func, delay) => {
         let timeout;
         return (...args) => {
