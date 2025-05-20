@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Rachunków</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Generator Rachunków</title>    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/modal.css">
     <!-- Biblioteka do generowania PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Dodanie ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="header-controls">
@@ -33,6 +35,14 @@
                         <div class="form-group">
                             <label for="sellerNIP">NIP:</label>
                             <input type="text" id="sellerNIP" name="sellerNIP" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellerBankAccount">Numer konta bankowego:</label>
+                            <input type="text" id="sellerBankAccount" name="sellerBankAccount">
+                        </div>
+                        <div class="form-group">
+                            <label for="sellerBankName">Nazwa banku:</label>
+                            <input type="text" id="sellerBankName" name="sellerBankName">
                         </div>
                     </div>
 
@@ -66,6 +76,29 @@
                             <label for="dueDate">Termin płatności:</label>
                             <input type="date" id="dueDate" name="dueDate" required>
                         </div>
+                        <div class="form-group">
+                            <label for="placeOfIssue">Miejsce wystawienia:</label>
+                            <input type="text" id="placeOfIssue" name="placeOfIssue" value="Wrocław">
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Sposób płatności:</label>
+                            <select id="paymentMethod" name="paymentMethod">
+                                <option value="przelew">Przelew</option>
+                                <option value="gotowka">Gotówka</option>
+                                <option value="karta">Karta płatnicza</option>
+                                <option value="blik">BLIK</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="currency">Waluta:</label>
+                            <select id="currency" name="currency" class="currency-selector">
+                                <option value="PLN">PLN - Złoty polski</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="USD">USD - Dolar amerykański</option>
+                                <option value="GBP">GBP - Funt brytyjski</option>
+                                <option value="CHF">CHF - Frank szwajcarski</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-section">
@@ -88,7 +121,11 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" id="generatePdfButton">Generuj PDF</button>
+                        <div class="additional-buttons">
+                            <button type="button" id="saveTemplateButton" class="secondary-button"><i class="fas fa-save"></i> Zapisz szablon</button>
+                            <button type="button" id="loadTemplateButton" class="secondary-button"><i class="fas fa-folder-open"></i> Wczytaj szablon</button>
+                        </div>
+                        <button type="submit" id="generatePdfButton"><i class="fas fa-file-pdf"></i> Generuj PDF</button>
                     </div>
                 </form>
             </div>
@@ -96,8 +133,9 @@
             <!-- Podgląd rachunku -->
             <div class="preview-container">
                 <div class="preview-toolbar">
-                    <button id="uploadLogo">Dodaj logo</button>
+                    <button id="uploadLogo"><i class="fas fa-image"></i> Dodaj logo</button>
                     <input type="file" id="logoInput" accept="image/*" hidden>
+                    <button id="printPreviewBtn"><i class="fas fa-print"></i> Drukuj podgląd</button>
                 </div>
                 <h2>Podgląd rachunku</h2>
                 <div id="invoicePreview" class="invoice-preview">
@@ -106,6 +144,26 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal dla zapisywania/wczytywania szablonów -->
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 id="modalTitle">Zapisz szablon</h3>
+            <div class="form-group">
+                <label for="templateName">Nazwa szablonu:</label>
+                <input type="text" id="templateName" name="templateName" required>
+            </div>
+            <div id="templatesList" class="templates-list"></div>
+            <div class="modal-actions">
+                <button id="confirmTemplateAction" class="primary-button">Zapisz</button>
+                <button id="cancelTemplateAction" class="secondary-button">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container dla komunikatów -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <script src="js/script.js"></script>
 </body>

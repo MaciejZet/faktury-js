@@ -1,10 +1,15 @@
 :root {
     --primary-color: #2563eb;
+    --secondary-color: #10b981;
     --bg-color: #f8fafc;
     --text-color: #1e293b;
     --border-color: #e2e8f0;
     --form-bg: #ffffff;
     --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --hover-bg: #f1f5f9;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    --success-color: #10b981;
 }
 
 [data-theme="dark"] {
@@ -12,6 +17,8 @@
     --text-color: #f1f5f9;
     --border-color: #334155;
     --form-bg: #1e293b;
+    --hover-bg: #283548;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
 }
 
 body {
@@ -21,6 +28,41 @@ body {
     line-height: 1.5;
     margin: 0;
     padding: 2rem;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.header-controls {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 2rem;
+    margin-bottom: 1rem;
+}
+
+.theme-switch {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.theme-switch:hover {
+    transform: scale(1.1);
+}
+
+.container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 600;
+    color: var(--primary-color);
 }
 
 .app-container {
@@ -31,6 +73,12 @@ body {
     margin: 0 auto;
 }
 
+@media (max-width: 1200px) {
+    .app-container {
+        grid-template-columns: 1fr;
+    }
+}
+
 .form-container {
     background: var(--form-bg);
     border-radius: 12px;
@@ -38,13 +86,56 @@ body {
     box-shadow: var(--shadow);
 }
 
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 .preview-container {
     position: sticky;
     top: 2rem;
     background: white;
     border-radius: 12px;
-    padding: 3rem;
+    padding: 1.5rem;
     box-shadow: var(--shadow);
+}
+
+.preview-container h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    text-align: center;
+}
+
+.preview-toolbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.preview-toolbar button {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.preview-toolbar button:hover {
+    background-color: #0ea271;
 }
 
 .invoice-preview {
@@ -55,49 +146,20 @@ body {
     margin: 0 auto;
     box-shadow: var(--shadow);
     animation: fadeIn 0.5s ease-out;
+    transform-origin: top center;
 }
 
 .invoice-header {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 2rem;
-    margin-bottom: 4rem;
+    margin-bottom: 2rem;
 }
 
 .company-logo {
     max-width: 200px;
     max-height: 100px;
     object-fit: contain;
-}
-
-.invoice-parties {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    margin-bottom: 4rem;
-}
-
-.items-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 2rem 0;
-}
-
-.items-table th {
-    background: #f8fafc;
-    padding: 1rem;
-    text-align: left;
-}
-
-.items-table td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.invoice-summary {
-    margin-left: auto;
-    width: 300px;
-    margin-top: 2rem;
 }
 
 .form-group {
@@ -118,45 +180,47 @@ body {
     border-radius: 6px;
     background: var(--form-bg);
     color: var(--text-color);
+    transition: border-color 0.3s;
+    font-size: 0.95rem;
 }
 
-button#addItemButton {
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 10px;
+.form-group input:focus, .form-group textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
-button#addItemButton:hover {
-    background-color: #0b7dda;
+.form-group input:hover, .form-group textarea:hover {
+    border-color: var(--primary-color);
 }
 
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Style dla sekcji z pozycjami rachunku */
 #itemsTable {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
+    margin-top: 1rem;
+    background: var(--form-bg);
 }
 
 #itemsTable th, #itemsTable td {
-    padding: 10px;
+    padding: 0.75rem;
     text-align: left;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
 }
 
 #itemsTable th {
-    background-color: #f4f4f4;
-    font-weight: bold;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
 }
 
-.item-row input {
-    width: 100%;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+#itemsTable tbody tr:nth-child(even) {
+    background-color: var(--hover-bg);
 }
 
 .item-row {
@@ -164,20 +228,70 @@ button#addItemButton:hover {
 }
 
 .item-row:hover {
-    background: rgba(33, 150, 243, 0.1);
+    background: rgba(37, 99, 235, 0.1) !important;
+}
+
+.item-row input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--form-bg);
+    color: var(--text-color);
 }
 
 .delete-item-btn {
-    background: #ff4444;
+    background: var(--error-color);
     border: none;
-    padding: 5px 10px;
+    padding: 0.5rem 0.75rem;
     border-radius: 4px;
     color: white;
     transition: transform 0.2s;
+    cursor: pointer;
 }
 
 .delete-item-btn:hover {
     transform: scale(1.05);
+}
+
+button#addItemButton {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 1rem;
+    transition: background-color 0.2s;
+}
+
+button#addItemButton:hover {
+    background-color: #0ea271;
+}
+
+.form-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+#generatePdfButton {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.9rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    flex: 1;
+}
+
+#generatePdfButton:hover {
+    background-color: #1d4ed8;
 }
 
 @keyframes fadeIn {
@@ -185,6 +299,7 @@ button#addItemButton:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Style dla podglądu faktury */
 .invoice-preview {
     padding: 30px;
     background: white;
@@ -202,66 +317,188 @@ button#addItemButton:hover {
 }
 
 .invoice-table th {
-    padding: 2px 6px 6px 6px;
+    padding: 6px 10px;
     text-align: center;
     border: 0.5px solid black;
-    background-color: #e2e2e2;
-    font-weight: 400;
+    background-color: #f0f0f0;
+    font-weight: 500;
     font-size: 14px;
     line-height: 1.3;
 }
 
 .invoice-table td {
-    padding: 2px 6px 6px 6px;
+    padding: 8px 10px;
     border: 0.5px solid black;
     line-height: 1.3;
     font-size: 12pt;
 }
 
-.invoice-header {
+.parties-grid {
     display: grid;
-    grid-template-columns: 50% 6% 44%;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
     margin-bottom: 20px;
 }
 
 .invoice-party {
-    border-top: 0.5px solid black;
-    background-color: #e2e2e2;
-    padding: 4px;
+    border: 0.5px solid black;
+}
+
+.party-header {
+    border-bottom: 0.5px solid black;
+    background-color: #f0f0f0;
+    padding: 6px;
     font-size: 12pt;
+    font-weight: 500;
     line-height: 1.3;
 }
 
 .party-details {
-    padding: 8px 0;
+    padding: 10px;
     font-size: 12pt;
-    line-height: 1.3;
+    line-height: 1.4;
 }
 
 .invoice-title {
     text-align: center;
-    font-weight: 400;
-    font-size: 14pt;
+    font-weight: 500;
+    font-size: 16pt;
     line-height: 1.1;
-    margin: 20px 0;
+    margin: 30px 0;
 }
 
 .payment-info {
-    display: grid;
-    grid-template-columns: 46% 8% 46%;
-    margin: 20px 0;
+    margin: 30px 0;
+}
+
+.payment-details {
+    width: 100%;
+    border-collapse: collapse;
 }
 
 .payment-details td {
-    border-top: 0.5px solid black;
-    padding: 3px 0;
+    padding: 6px 0;
     font-size: 12pt;
     line-height: 1.3;
 }
 
+.payment-details tr td:first-child {
+    font-weight: 500;
+    padding-right: 15px;
+}
+
 .signature-area {
     text-align: center;
-    margin-top: 40px;
-    border-top: 0.5px solid black;
+    margin-top: 60px;
     padding-top: 10px;
+}
+
+/* Dodaj animacje dla lepszego UX */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fadeIn {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border-left-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.toast {
+    padding: 12px 20px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.toast-error {
+    background-color: var(--error-color);
+    color: white;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Dodatkowe przyciski */
+.additional-buttons {
+    display: flex;
+    gap: 10px;
+    margin-right: 20px;
+}
+
+.secondary-button {
+    background-color: #6b7280;
+    color: white;
+    border: none;
+    padding: 0.9rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.secondary-button:hover {
+    background-color: #4b5563;
+}
+
+/* Style dla wyboru waluty */
+.currency-selector {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--form-bg);
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+/* Style dla pól z walidacją */
+.form-group.error input,
+.form-group.error textarea {
+    border-color: var(--error-color);
+}
+
+.error-message {
+    color: var(--error-color);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Płynne przejścia między trybami */
+*, *::before, *::after {
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 }
