@@ -20,24 +20,25 @@
                 <form id="invoiceForm">
                     <div class="form-section">
                         <h2>Dane sprzedawcy</h2>
-                        <div class="form-group">
-                            <label for="sellerType">Typ:</label>
-                            <select id="sellerType" name="sellerType" required>
-                                <option value="sprzedawca">Sprzedawca</option>
-                                <option value="dostawca">Dostawca</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="sellerName">Nazwa/Imię i nazwisko:</label>
-                            <input type="text" id="sellerName" name="sellerName" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sellerType">Typ:</label>
+                                <select id="sellerType" name="sellerType" required>
+                                    <option value="sprzedawca">Sprzedawca</option>
+                                    <option value="dostawca">Dostawca</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerName">Nazwa/Imię i nazwisko:</label>
+                                <input type="text" id="sellerName" name="sellerName" required>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="sellerAddress">Adres:</label>
                             <textarea id="sellerAddress" name="sellerAddress" required></textarea>
                         </div>
-                        <div class="form-group">
-                            <label for="sellerNIP">NIP:</label>
-                            <input type="text" id="sellerNIP" name="sellerNIP">
+                        <div class="nip-group">
+                            <input type="text" id="sellerNIP" name="sellerNIP" placeholder="NIP">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="sellerHasNIP" checked> Posiada NIP
                             </label>
@@ -58,24 +59,25 @@
 
                     <div class="form-section">
                         <h2>Dane nabywcy</h2>
-                        <div class="form-group">
-                            <label for="buyerType">Typ:</label>
-                            <select id="buyerType" name="buyerType" required>
-                                <option value="nabywca">Nabywca</option>
-                                <option value="odbiorca">Odbiorca</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="buyerName">Nazwa/Imię i nazwisko:</label>
-                            <input type="text" id="buyerName" name="buyerName" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="buyerType">Typ:</label>
+                                <select id="buyerType" name="buyerType" required>
+                                    <option value="nabywca">Nabywca</option>
+                                    <option value="odbiorca">Odbiorca</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="buyerName">Nazwa/Imię i nazwisko:</label>
+                                <input type="text" id="buyerName" name="buyerName" required>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="buyerAddress">Adres:</label>
                             <textarea id="buyerAddress" name="buyerAddress" required></textarea>
                         </div>
-                        <div class="form-group">
-                            <label for="buyerNIP">NIP:</label>
-                            <input type="text" id="buyerNIP" name="buyerNIP">
+                        <div class="nip-group">
+                            <input type="text" id="buyerNIP" name="buyerNIP" placeholder="NIP">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="buyerHasNIP" checked> Posiada NIP
                             </label>
@@ -92,36 +94,40 @@
                             <label for="invoiceNumber">Numer rachunku:</label>
                             <input type="text" id="invoiceNumber" name="invoiceNumber" required>
                         </div>
-                        <div class="form-group">
-                            <label for="issueDate">Data wystawienia:</label>
-                            <input type="date" id="issueDate" name="issueDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="dueDate">Termin płatności:</label>
-                            <input type="date" id="dueDate" name="dueDate" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="issueDate">Data wystawienia:</label>
+                                <input type="date" id="issueDate" name="issueDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="dueDate">Termin płatności:</label>
+                                <input type="date" id="dueDate" name="dueDate" required>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="placeOfIssue">Miejsce wystawienia:</label>
                             <input type="text" id="placeOfIssue" name="placeOfIssue" value="Wrocław">
                         </div>
-                        <div class="form-group">
-                            <label for="paymentMethod">Sposób płatności:</label>
-                            <select id="paymentMethod" name="paymentMethod">
-                                <option value="przelew">Przelew</option>
-                                <option value="gotowka">Gotówka</option>
-                                <option value="karta">Karta płatnicza</option>
-                                <option value="blik">BLIK</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="currency">Waluta:</label>
-                            <select id="currency" name="currency" class="currency-selector">
-                                <option value="PLN">PLN - Złoty polski</option>
-                                <option value="EUR">EUR - Euro</option>
-                                <option value="USD">USD - Dolar amerykański</option>
-                                <option value="GBP">GBP - Funt brytyjski</option>
-                                <option value="CHF">CHF - Frank szwajcarski</option>
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="paymentMethod">Sposób płatności:</label>
+                                <select id="paymentMethod" name="paymentMethod">
+                                    <option value="przelew">Przelew</option>
+                                    <option value="gotowka">Gotówka</option>
+                                    <option value="karta">Karta płatnicza</option>
+                                    <option value="blik">BLIK</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="currency">Waluta:</label>
+                                <select id="currency" name="currency" class="currency-selector">
+                                    <option value="PLN">PLN - Złoty polski</option>
+                                    <option value="EUR">EUR - Euro</option>
+                                    <option value="USD">USD - Dolar amerykański</option>
+                                    <option value="GBP">GBP - Funt brytyjski</option>
+                                    <option value="CHF">CHF - Frank szwajcarski</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="checkbox-label">

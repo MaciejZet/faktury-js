@@ -1,5 +1,5 @@
 :root {
-    --primary-color: #2563eb;
+    --primary-color: #02945F;
     --secondary-color: #10b981;
     --bg-color: #f8fafc;
     --text-color: #1e293b;
@@ -168,42 +168,86 @@ h1 {
     object-fit: contain;
 }
 
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.nip-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.nip-group input[type="text"] {
+    flex: 1;
+}
+
+.nip-group .checkbox-label {
+    margin: 0;
+    white-space: nowrap;
+}
+
+textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
 .form-group {
     margin-bottom: 1rem;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
     font-weight: 500;
-    color: var(--text-color);
-    font-size: 0.9rem;
 }
 
-.form-group input, .form-group textarea, .form-group select {
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--form-bg);
-    color: var(--text-color);
-    transition: border-color 0.3s;
+    border-radius: 4px;
     font-size: 0.9rem;
 }
 
-.form-group input:focus, .form-group textarea:focus {
+.form-group input[type="text"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
     border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
 }
 
-.form-group input:hover, .form-group textarea:hover {
-    border-color: var(--primary-color);
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
 }
 
-.form-group textarea {
-    min-height: 80px;
-    resize: vertical;
+.checkbox-label input[type="checkbox"] {
+    margin: 0;
+}
+
+.form-row .form-group {
+    margin-bottom: 0;
+}
+
+.form-row label {
+    margin-bottom: 0.25rem;
+}
+
+.form-row input, .form-row select {
+    width: 100%;
 }
 
 /* Style dla sekcji z pozycjami rachunku */
@@ -511,22 +555,9 @@ button#addItemButton:hover {
     font-size: 0.8rem;
 }
 
-.checkbox-label {
-    display: inline-flex;
-    align-items: center;
-    margin-left: 10px;
-    font-size: 0.9em;
-    color: var(--text-color);
-}
-
-.checkbox-label input[type="checkbox"] {
-    margin-right: 5px;
-}
-
 .amount-in-words-row {
     font-size: 0.9em;
     padding: 10px !important;
-    border-top: 2px solid var(--border-color) !important;
 }
 
 .vat-exemption {
