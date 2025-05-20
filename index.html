@@ -12,11 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="header-controls">
-        <button id="themeSwitcher" class="theme-switch">🌙</button>
-    </div>
     <div class="container">
-        <h1>Generator Rachunków</h1>
         
         <div class="app-container">
             <!-- Formularz -->
@@ -24,6 +20,13 @@
                 <form id="invoiceForm">
                     <div class="form-section">
                         <h2>Dane sprzedawcy</h2>
+                        <div class="form-group">
+                            <label for="sellerType">Typ:</label>
+                            <select id="sellerType" name="sellerType" required>
+                                <option value="sprzedawca">Sprzedawca</option>
+                                <option value="dostawca">Dostawca</option>
+                            </select>
+                        </div>
                         <div class="form-group">
                             <label for="sellerName">Nazwa/Imię i nazwisko:</label>
                             <input type="text" id="sellerName" name="sellerName" required>
@@ -34,7 +37,10 @@
                         </div>
                         <div class="form-group">
                             <label for="sellerNIP">NIP:</label>
-                            <input type="text" id="sellerNIP" name="sellerNIP" required>
+                            <input type="text" id="sellerNIP" name="sellerNIP">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="sellerHasNIP" checked> Posiada NIP
+                            </label>
                         </div>
                         <div class="form-group">
                             <label for="sellerBankAccount">Numer konta bankowego:</label>
@@ -53,6 +59,13 @@
                     <div class="form-section">
                         <h2>Dane nabywcy</h2>
                         <div class="form-group">
+                            <label for="buyerType">Typ:</label>
+                            <select id="buyerType" name="buyerType" required>
+                                <option value="nabywca">Nabywca</option>
+                                <option value="odbiorca">Odbiorca</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="buyerName">Nazwa/Imię i nazwisko:</label>
                             <input type="text" id="buyerName" name="buyerName" required>
                         </div>
@@ -62,7 +75,10 @@
                         </div>
                         <div class="form-group">
                             <label for="buyerNIP">NIP:</label>
-                            <input type="text" id="buyerNIP" name="buyerNIP" required>
+                            <input type="text" id="buyerNIP" name="buyerNIP">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="buyerHasNIP" checked> Posiada NIP
+                            </label>
                         </div>
                         <div class="contact-actions">
                             <button type="button" id="saveBuyerButton" class="secondary-button"><i class="fas fa-save"></i> Zapisz dane nabywcy</button>
@@ -106,6 +122,15 @@
                                 <option value="GBP">GBP - Funt brytyjski</option>
                                 <option value="CHF">CHF - Frank szwajcarski</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="isVATExempt"> Faktura bez VAT
+                            </label>
+                        </div>
+                        <div class="form-group" id="amountInWordsGroup" style="display: none;">
+                            <label for="amountInWords">Kwota słownie:</label>
+                            <input type="text" id="amountInWords" name="amountInWords" readonly>
                         </div>
                     </div>
 

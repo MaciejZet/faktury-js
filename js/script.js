@@ -35,6 +35,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentContactAction = "save";
     let currentContactType = "seller";
 
+    // Add new variables
+    const sellerHasNIP = document.getElementById('sellerHasNIP');
+    const buyerHasNIP = document.getElementById('buyerHasNIP');
+    const isVATExempt = document.getElementById('isVATExempt');
+    const amountInWordsGroup = document.getElementById('amountInWordsGroup');
+    const amountInWords = document.getElementById('amountInWords');
+
     addItemButton.addEventListener("click", () => {
         addNewInvoiceRow();
     });
@@ -105,6 +112,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return { description, quantity, price, total };
         });
 
+        // Update amount in words
+        if (totalSum > 0) {
+            amountInWordsGroup.style.display = 'block';
+            const amountInWordsText = numberToWords(Math.floor(totalSum));
+            const cents = Math.round((totalSum % 1) * 100);
+            amountInWords.value = `${amountInWordsText} ${cents.toString().padStart(2, '0')}/100 zł`;
+        } else {
+            amountInWordsGroup.style.display = 'none';
+        }
+
         const logo = localStorage.getItem('companyLogo');
         const logoHtml = logo ? `<img src="${logo}" class="company-logo" alt="Logo firmy">` : '';
         const currencySymbol = getCurrencySymbol();
@@ -112,6 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const sellerBankName = document.getElementById("sellerBankName").value;
         const paymentMethod = document.getElementById("paymentMethod").value;
         const placeOfIssue = document.getElementById("placeOfIssue").value;
+        const sellerType = document.getElementById("sellerType").value;
+        const buyerType = document.getElementById("buyerType").value;
 
         const paymentMethods = {
             'przelew': 'Przelew bankowy',
@@ -145,25 +164,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <div class="parties-grid">
                 <div class="invoice-party">
-                    <div class="party-header">Nabywca</div>
+                    <div class="party-header">${buyerType.charAt(0).toUpperCase() + buyerType.slice(1)}</div>
                     <div class="party-details">
                         ${document.getElementById("buyerName").value}<br>
-                        NIP: ${document.getElementById("buyerNIP").value}<br>
+                        ${buyerHasNIP.checked ? `NIP: ${document.getElementById("buyerNIP").value}<br>` : ''}
                         ${document.getElementById("buyerAddress").value}
                     </div>
                 </div>
                 <div class="invoice-party">
-                    <div class="party-header">Sprzedawca</div>
+                    <div class="party-header">${sellerType.charAt(0).toUpperCase() + sellerType.slice(1)}</div>
                     <div class="party-details">
                         ${document.getElementById("sellerName").value}<br>
-                        NIP: ${document.getElementById("sellerNIP").value}<br>
+                        ${sellerHasNIP.checked ? `NIP: ${document.getElementById("sellerNIP").value}<br>` : ''}
                         ${document.getElementById("sellerAddress").value}
                     </div>
                 </div>
             </div>
 
             <div class="invoice-title">
-                Faktura VAT ${document.getElementById("invoiceNumber").value}
+                ${isVATExempt.checked ? 'Faktura' : 'Faktura VAT'} ${document.getElementById("invoiceNumber").value}
             </div>
 
             <table class="invoice-table">
@@ -191,6 +210,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     <tr>
                         <td colspan="5" align="right"><strong>Razem:</strong></td>
                         <td align="right"><strong>${formatAmount(totalSum)}</strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" align="right" class="amount-in-words-row">
+                            <strong>Słownie:</strong> ${amountInWords.value}
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -221,6 +245,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     </tr>
                 </table>
             </div>
+
+            ${isVATExempt.checked ? `
+            <div class="vat-exemption">
+                Przepis na podstawie którego stosowane jest zwolnienie od podatku (stawka VAT zw.): 
+                Zwolnienie ze względu na nieprzekroczenie 200 000 PLN obrotu (art. 113 ust 1 i 9 ustawy o VAT).
+            </div>
+            ` : ''}
 
             <div class="signature-area">
                 <div style="height: 60px;"></div>
@@ -646,6 +677,79 @@ document.addEventListener("DOMContentLoaded", () => {
     if (savedTheme === 'dark') {
         document.body.dataset.theme = 'dark';
         themeSwitcher.textContent = '☀️';
+    }
+
+    // Handle NIP visibility
+    sellerHasNIP.addEventListener('change', () => {
+        const sellerNIP = document.getElementById('sellerNIP');
+        sellerNIP.required = sellerHasNIP.checked;
+        sellerNIP.disabled = !sellerHasNIP.checked;
+        if (!sellerHasNIP.checked) sellerNIP.value = '';
+    });
+
+    buyerHasNIP.addEventListener('change', () => {
+        const buyerNIP = document.getElementById('buyerNIP');
+        buyerNIP.required = buyerHasNIP.checked;
+        buyerNIP.disabled = !buyerHasNIP.checked;
+        if (!buyerHasNIP.checked) buyerNIP.value = '';
+    });
+
+    // Handle VAT exemption
+    isVATExempt.addEventListener('change', () => {
+        updatePreview();
+    });
+
+    // Function to convert number to words in Polish
+    function numberToWords(number) {
+        const units = ['', 'jeden', 'dwa', 'trzy', 'cztery', 'pięć', 'sześć', 'siedem', 'osiem', 'dziewięć'];
+        const teens = ['dziesięć', 'jedenaście', 'dwanaście', 'trzynaście', 'czternaście', 'piętnaście', 'szesnaście', 'siedemnaście', 'osiemnaście', 'dziewiętnaście'];
+        const tens = ['', '', 'dwadzieścia', 'trzydzieści', 'czterdzieści', 'pięćdziesiąt', 'sześćdziesiąt', 'siedemdziesiąt', 'osiemdziesiąt', 'dziewięćdziesiąt'];
+        const hundreds = ['', 'sto', 'dwieście', 'trzysta', 'czterysta', 'pięćset', 'sześćset', 'siedemset', 'osiemset', 'dziewięćset'];
+        const thousandForms = ['', 'tysiąc', 'tysiące', 'tysięcy'];
+        const millionForms = ['', 'milion', 'miliony', 'milionów'];
+
+        function convertGroup(n, group) {
+            if (n === 0) return '';
+            let result = '';
+            
+            if (n >= 100) {
+                result += hundreds[Math.floor(n / 100)] + ' ';
+                n %= 100;
+            }
+            
+            if (n >= 20) {
+                result += tens[Math.floor(n / 10)] + ' ';
+                n %= 10;
+            } else if (n >= 10) {
+                result += teens[n - 10] + ' ';
+                return result;
+            }
+            
+            if (n > 0) {
+                result += units[n] + ' ';
+            }
+            
+            return result;
+        }
+
+        let result = '';
+        const millionsCount = Math.floor(number / 1000000);
+        const thousandsCount = Math.floor((number % 1000000) / 1000);
+        const remainder = number % 1000;
+
+        if (millionsCount > 0) {
+            result += convertGroup(millionsCount, millionsCount) + 'milionów ';
+        }
+        
+        if (thousandsCount > 0) {
+            result += convertGroup(thousandsCount, thousandsCount) + 'tysięcy ';
+        }
+        
+        if (remainder > 0) {
+            result += convertGroup(remainder, remainder);
+        }
+
+        return result.trim();
     }
 });
 
