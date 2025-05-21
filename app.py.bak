@@ -259,11 +259,12 @@ def generate_pdf():
               # Domyślna jednostka miary to "usł." jeśli nie podano
             unit = item.get('unit', 'usł.')
             
-            # Zawijanie długiego tekstu i dodanie Paragraph do jednostki miary
-            description = Paragraph(item['description'], wrap_style)
+            # Przekształć jednostkę miary w obiekt Paragraph dla poprawnego wyświetlenia polskich znaków
             unit_paragraph = Paragraph(unit, wrap_style)
             
-            # Używanie Paragraph dla jednostki miary, aby polskie znaki wyświetlały się poprawnie
+            # Zawijanie długiego tekstu
+            description = Paragraph(item['description'], wrap_style)
+            
             row = [str(i), description, unit_paragraph, f"{quantity:.2f}", f"{price:.2f} PLN", f"{net_value:.2f} PLN"]
             if data.get('is_vat'):
                 row.extend([f"{int(vat_rate*100)}%", f"{vat_amount:.2f} PLN", f"{gross_value:.2f} PLN"])
@@ -278,8 +279,7 @@ def generate_pdf():
         if data.get('is_vat'):
             items_data.append(['', '', '', '', '', Paragraph('Razem:', total_style), '', f"{total_vat:.2f} PLN", f"{total_gross:.2f} PLN"])
             items_data.append(['', '', '', '', '', Paragraph('W tym:', styles['Normal']), '', '', ''])
-            items_data.append(['', '', '', '', '', Paragraph('23% VAT:', styles['Normal']), '23%', f"{total_vat:.2f} PLN", f"{total_gross:.2f} PLN"])
-        else:
+            items_data.append(['', '', '', '', '', Paragraph('23% VAT:', styles['Normal']), '23%', f"{total_vat:.2f} PLN", f"{total_gross:.2f} PLN"])        else:
             items_data.append(['', '', '', '', Paragraph('Razem:', total_style), f"{total_net:.2f} PLN"])
         
         items_table = Table(items_data, colWidths=col_widths)
@@ -287,8 +287,8 @@ def generate_pdf():
             ('ALIGN', (0, 0), (0, -1), 'CENTER'),      # Lp. centered
             ('ALIGN', (2, 0), (3, -1), 'CENTER'),      # J.m. and Quantity centered
             ('ALIGN', (1, 0), (1, -1), 'LEFT'),        # Description left aligned
-            ('ALIGN', (4, 0), (4, -1), 'CENTER'),      # Cena column centered
-            ('ALIGN', (5, 0), (-1, -1), 'RIGHT'),      # Other amount columns right aligned
+            ('ALIGN', (4, 0), (4, -1), 'CENTER'),      # Price column centered
+            ('ALIGN', (5, 0), (-1, -1), 'RIGHT'),      # All other amount columns right aligned
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),    # Middle vertical alignment
             ('GRID', (0, 0), (-1, -2), 0.5, colors.black),  # Thinner grid lines
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # Header background
@@ -329,8 +329,8 @@ def generate_pdf():
             if data.get('seller_bank_name'):
                 payment_data.append(['Bank:', data['seller_bank_name']])
             payment_data.append(['Termin płatności:', data['due_date']])
-          # Zmiana szerokości kolumn tabeli płatności, aby mieściła się w dokumencie
-        payment_table = Table(payment_data, colWidths=[40*mm, 130*mm])
+        
+        payment_table = Table(payment_data, colWidths=[35*mm, 135*mm])
         payment_table.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('TOPPADDING', (0, 0), (-1, -1), 3),
@@ -338,8 +338,6 @@ def generate_pdf():
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (0, -1), 'DejaVuSans-Bold'),
             ('BACKGROUND', (0, 0), (0, -1), colors.lightgrey),
-            ('LEFTPADDING', (0, 0), (0, -1), 2),  # Mniejsze marginesy, aby tekst lepiej się mieścił
-            ('RIGHTPADDING', (0, 0), (0, -1), 2),
         ]))
         elements.append(payment_table)
         elements.append(Spacer(1, 7*mm))
@@ -350,12 +348,10 @@ def generate_pdf():
         # Format kwoty słownie z groszami
         int_part = int(final_amount)
         decimal_part = int((final_amount % 1) * 100)
-          # Użyj Paragraph dla tekstów w złotych słownie, aby poprawnie wyświetlać polskie znaki
-        amount_in_words = f"{number_to_words(int_part)} {decimal_part:02d}/100 PLN"
         
         summary_data = [
             ['Do zapłaty:', f"{final_amount:.2f} PLN"],
-            ['Słownie:', Paragraph(amount_in_words, wrap_style)]
+            ['Słownie:', f"{number_to_words(int_part)} {decimal_part:02d}/100 PLN"]
         ]
         
         summary_table = Table(summary_data, colWidths=[30*mm, 70*mm])
