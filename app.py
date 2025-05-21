@@ -229,8 +229,11 @@ def generate_pdf():
         elements.append(Spacer(1, 8*mm))
         
         # Create separate tables for seller and buyer, side by side
+        seller_type = data.get('seller_type', 'Sprzedawca')
+        seller_type_capitalized = seller_type[0].upper() + seller_type[1:]
+        
         seller_info = [
-            [Paragraph('Sprzedawca:', ParagraphStyle('SellerHeader', parent=label_style, textColor=colors.white))],
+            [Paragraph(f'{seller_type_capitalized}:', ParagraphStyle('SellerHeader', parent=label_style, textColor=colors.white))],
             [Paragraph(data['seller_name'], styles['Normal'])],
             [Paragraph(data['seller_address'], styles['Normal'])]
         ]
@@ -251,8 +254,12 @@ def generate_pdf():
             ('LEFTPADDING', (0, 0), (0, -1), 4),
             ('RIGHTPADDING', (0, 0), (0, -1), 4),
         ]))
+        
+        buyer_type = data.get('buyer_type', 'Nabywca')
+        buyer_type_capitalized = buyer_type[0].upper() + buyer_type[1:]
+        
         buyer_info = [
-            [Paragraph('Nabywca:', ParagraphStyle('BuyerHeader', parent=label_style, textColor=colors.white))],
+            [Paragraph(f'{buyer_type_capitalized}:', ParagraphStyle('BuyerHeader', parent=label_style, textColor=colors.white))],
             [Paragraph(data['buyer_name'], styles['Normal'])],
             [Paragraph(data['buyer_address'], styles['Normal'])]
         ]

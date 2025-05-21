@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <img id="previewLogo" src="" alt="Logo" style="display: none;">
                 </div>
                 <div class="invoice-title">
-                    ${document.getElementById('sellerType').value === 'sprzedawca' ? 'Rachunek' : 'Faktura VAT'}
+                    ${document.getElementById('isVATExempt').checked ? 'Faktura' : 'Faktura VAT'} ${document.getElementById('invoiceNumber').value}
                 </div>
                 <div class="invoice-meta">
                     <div class="head">Data wystawienia:</div>
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <div class="parties-grid">
                 <div class="invoice-party">
-                    <div class="party-header">${document.getElementById('sellerType').value === 'sprzedawca' ? 'Sprzedawca' : 'Dostawca'}</div>
+                    <div class="party-header">${document.getElementById('sellerType').value.charAt(0).toUpperCase() + document.getElementById('sellerType').value.slice(1)}</div>
                     <div class="party-details">
                         ${document.getElementById('sellerName').value}<br>
                         ${document.getElementById('sellerAddress').value}<br>
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </div>
                 <div class="invoice-party">
-                    <div class="party-header">${document.getElementById('buyerType').value === 'nabywca' ? 'Nabywca' : 'Odbiorca'}</div>
+                    <div class="party-header">${document.getElementById('buyerType').value.charAt(0).toUpperCase() + document.getElementById('buyerType').value.slice(1)}</div>
                     <div class="party-details">
                         ${document.getElementById('buyerName').value}<br>
                         ${document.getElementById('buyerAddress').value}<br>
@@ -347,6 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (currentContactType === 'seller') {
             contactData = {
                 name: contactName,
+                sellerType: document.getElementById('sellerType').value,
                 sellerName: document.getElementById('sellerName').value,
                 sellerAddress: document.getElementById('sellerAddress').value,
                 sellerNIP: document.getElementById('sellerNIP').value,
@@ -356,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             contactData = {
                 name: contactName,
+                buyerType: document.getElementById('buyerType').value,
                 buyerName: document.getElementById('buyerName').value,
                 buyerAddress: document.getElementById('buyerAddress').value,
                 buyerNIP: document.getElementById('buyerNIP').value,
@@ -374,12 +376,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const contact = contacts.find(c => c.name === name);
         if (contact) {
             if (type === 'seller') {
+                if (contact.sellerType) {
+                    document.getElementById('sellerType').value = contact.sellerType;
+                }
                 document.getElementById('sellerName').value = contact.sellerName || '';
                 document.getElementById('sellerAddress').value = contact.sellerAddress || '';
                 document.getElementById('sellerNIP').value = contact.sellerNIP || '';
                 document.getElementById('sellerBankAccount').value = contact.sellerBankAccount || '';
                 document.getElementById('sellerBankName').value = contact.sellerBankName || '';
             } else {
+                if (contact.buyerType) {
+                    document.getElementById('buyerType').value = contact.buyerType;
+                }
                 document.getElementById('buyerName').value = contact.buyerName || '';
                 document.getElementById('buyerAddress').value = contact.buyerAddress || '';
                 document.getElementById('buyerNIP').value = contact.buyerNIP || '';
@@ -618,6 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveToLocalStorage = debounce(() => {
         const formData = {
             sellerInfo: {
+                type: document.getElementById("sellerType").value,
                 name: document.getElementById("sellerName").value,
                 address: document.getElementById("sellerAddress").value,
                 nip: document.getElementById("sellerNIP").value,
@@ -625,6 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 bankName: document.getElementById("sellerBankName").value
             },
             buyerInfo: {
+                type: document.getElementById("buyerType").value,
                 name: document.getElementById("buyerName").value,
                 address: document.getElementById("buyerAddress").value,
                 nip: document.getElementById("buyerNIP").value
@@ -647,6 +657,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = JSON.parse(savedData);
                 
                 if (formData.sellerInfo) {
+                    if (formData.sellerInfo.type) {
+                        document.getElementById("sellerType").value = formData.sellerInfo.type;
+                    }
                     document.getElementById("sellerName").value = formData.sellerInfo.name || '';
                     document.getElementById("sellerAddress").value = formData.sellerInfo.address || '';
                     document.getElementById("sellerNIP").value = formData.sellerInfo.nip || '';
@@ -655,6 +668,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 
                 if (formData.buyerInfo) {
+                    if (formData.buyerInfo.type) {
+                        document.getElementById("buyerType").value = formData.buyerInfo.type;
+                    }
                     document.getElementById("buyerName").value = formData.buyerInfo.name || '';
                     document.getElementById("buyerAddress").value = formData.buyerInfo.address || '';
                     document.getElementById("buyerNIP").value = formData.buyerInfo.nip || '';

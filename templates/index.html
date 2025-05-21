@@ -198,13 +198,21 @@
         
         <form id="invoiceForm">
             <div class="row">
-                <!-- Seller Information -->
-                <div class="col-md-6">
+                <!-- Seller Information -->                <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">Dane Sprzedawcy</h5>
                         </div>
                         <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Typ</label>
+                                <select class="form-select" id="sellerType">
+                                    <option value="sprzedawca">Sprzedawca</option>
+                                    <option value="dostawca">Dostawca</option>
+                                    <option value="odbiorca">Odbiorca</option>
+                                    <option value="nabywca">Nabywca</option>
+                                </select>
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label">Nazwa</label>
                                 <input type="text" class="form-control" id="sellerName" required>
@@ -232,13 +240,21 @@
                     </div>
                 </div>
 
-                <!-- Buyer Information -->
-                <div class="col-md-6">
+                <!-- Buyer Information -->                <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">Dane Nabywcy</h5>
                         </div>
                         <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Typ</label>
+                                <select class="form-select" id="buyerType">
+                                    <option value="nabywca">Nabywca</option>
+                                    <option value="odbiorca">Odbiorca</option>
+                                    <option value="sprzedawca">Sprzedawca</option>
+                                    <option value="dostawca">Dostawca</option>
+                                </select>
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label">Nazwa</label>
                                 <input type="text" class="form-control" id="buyerName" required>
@@ -402,6 +418,32 @@
             document.getElementById('issueDate').valueAsDate = today;
             document.getElementById('dueDate').valueAsDate = dueDate;
 
+            // Function to update the preview when form elements change
+            function updatePreview() {
+                // This is just a placeholder function for now.
+                // In a real implementation, you would update a preview div with
+                // the current form data to show a live preview of the invoice.
+                
+                // Example implementation would update DOM elements based on form values:
+                // const sellerType = document.getElementById('sellerType').value;
+                // const sellerTypeElement = document.getElementById('previewSellerType');
+                // if (sellerTypeElement) {
+                //     sellerTypeElement.textContent = sellerType.charAt(0).toUpperCase() + sellerType.slice(1);
+                // }
+                
+                // For now, we'll just log that the preview should be updated
+                console.log("Preview would be updated here with current form data");
+            }
+            
+            // Update preview when party types change
+            document.getElementById('sellerType').addEventListener('change', function() {
+                updatePreview();
+            });
+
+            document.getElementById('buyerType').addEventListener('change', function() {
+                updatePreview();
+            });
+            
             // Handle NIP visibility
             document.getElementById('sellerHasNIP').addEventListener('change', function() {
                 const sellerNIP = document.getElementById('sellerNIP');
@@ -513,15 +555,15 @@
                 if (items.length === 0) {
                     showToast('Dodaj przynajmniej jedną pozycję do faktury!', 'error');
                     return;
-                }
-
-                const formData = {
+                }                const formData = {
+                    seller_type: document.getElementById('sellerType').value,
                     seller_name: document.getElementById('sellerName').value,
                     seller_address: document.getElementById('sellerAddress').value,
                     seller_has_nip: document.getElementById('sellerHasNIP').checked,
                     seller_nip: document.getElementById('sellerNIP').value,
                     seller_bank_account: document.getElementById('sellerBankAccount').value,
                     seller_bank_name: document.getElementById('sellerBankName').value,
+                    buyer_type: document.getElementById('buyerType').value,
                     buyer_name: document.getElementById('buyerName').value,
                     buyer_address: document.getElementById('buyerAddress').value,
                     buyer_has_nip: document.getElementById('buyerHasNIP').checked,
