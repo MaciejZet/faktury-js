@@ -354,7 +354,7 @@ def generate_pdf():
         amount_in_words = f"{number_to_words(int_part)} {decimal_part:02d}/100 PLN"
         
         summary_data = [
-            ['Do zapłaty:', f"{final_amount:.2f} PLN"],
+            ['Do zapłaty:', Paragraph(f"{final_amount:.2f} PLN", wrap_style)],
             ['Słownie:', Paragraph(amount_in_words, wrap_style)]
         ]
         
