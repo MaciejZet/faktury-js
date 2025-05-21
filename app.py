@@ -104,53 +104,126 @@ def generate_pdf():
             pagesize=A4,
             rightMargin=20*mm,
             leftMargin=20*mm,
-            topMargin=20*mm,
+            topMargin=15*mm,
             bottomMargin=20*mm
         )
         
+        # Define styles
         styles = getSampleStyleSheet()
         styles['Heading1'].fontName = 'DejaVuSans-Bold'
+        styles['Heading1'].alignment = 1  # Center alignment
+        styles['Heading1'].fontSize = 16
+        styles['Heading1'].spaceAfter = 10
+
         styles['Normal'].fontName = 'DejaVuSans'
+        styles['Normal'].fontSize = 10
+        styles['Normal'].leading = 14
+
+        header_style = ParagraphStyle(
+            'Header',
+            parent=styles['Normal'],
+            fontName='DejaVuSans-Bold',
+            fontSize=9,
+            alignment=2,  # Right alignment
+        )
+        
+        title_style = ParagraphStyle(
+            'Title',
+            parent=styles['Heading1'],
+            fontSize=18,
+            alignment=1,  # Center alignment
+            spaceAfter=5*mm,
+        )
+        
+        label_style = ParagraphStyle(
+            'Label',
+            parent=styles['Normal'],
+            fontName='DejaVuSans-Bold',
+            fontSize=10,
+            alignment=0,  # Left alignment
+        )
+        
+        total_style = ParagraphStyle(
+            'Total',
+            parent=styles['Normal'],
+            fontName='DejaVuSans-Bold',
+            fontSize=10,
+            alignment=2,  # Right alignment
+        )
+
         elements = []
         
-        # Add header
-        elements.append(Paragraph(f"{'Faktura VAT' if data.get('is_vat') else 'Rachunek'} {data['invoice_number']}", 
-                                styles['Heading1']))
-        elements.append(Spacer(1, 10*mm))
-        
-        # Add dates
-        elements.append(Paragraph(f"Data wystawienia: {data['issue_date']}", styles['Normal']))
-        elements.append(Paragraph(f"Data płatności: {data['due_date']}", styles['Normal']))
+        # Create top section with invoice title and dates
+        today = datetime.now().strftime('%d.%m.%Y')
+        place = data.get('place_of_issue', 'Wrocław')  # Default to Wrocław if not provided
+
+        # Header table with logo placeholder and dates
+        header_data = [
+            ['', Paragraph(f"Miejsce wystawienia: {place}", header_style)],
+            ['', Paragraph(f"Data wystawienia: {data['issue_date']}", header_style)],
+            ['', Paragraph(f"Data płatności: {data['due_date']}", header_style)]
+        ]
+        header_table = Table(header_data, colWidths=[100*mm, 70*mm])
+        header_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]))
+        elements.append(header_table)
         elements.append(Spacer(1, 5*mm))
         
-        # Add seller and buyer info
+        # Add centered title
+        title = f"{'FAKTURA VAT' if data.get('is_vat') else 'RACHUNEK'} {data['invoice_number']}"
+        elements.append(Paragraph(title, title_style))
+        elements.append(Spacer(1, 5*mm))
+        
+        # Create seller and buyer info in two columns
         seller_info = [
-            ['Sprzedawca:', data['seller_name']],
-            ['Adres:', data['seller_address']]
+            [Paragraph('Sprzedawca:', label_style)],
+            [Paragraph(data['seller_name'], styles['Normal'])],
+            [Paragraph(data['seller_address'], styles['Normal'])]
         ]
+        
         if data.get('seller_has_nip'):
-            seller_info.append(['NIP:', data['seller_nip']])
+            seller_info.append([Paragraph(f"NIP: {data['seller_nip']}", styles['Normal'])])
         
         buyer_info = [
-            ['Nabywca:', data['buyer_name']],
-            ['Adres:', data['buyer_address']]
+            [Paragraph('Nabywca:', label_style)],
+            [Paragraph(data['buyer_name'], styles['Normal'])],
+            [Paragraph(data['buyer_address'], styles['Normal'])]
         ]
+        
         if data.get('buyer_has_nip'):
-            buyer_info.append(['NIP:', data['buyer_nip']])
+            buyer_info.append([Paragraph(f"NIP: {data['buyer_nip']}", styles['Normal'])])
         
-        # Create tables for seller and buyer info
-        seller_table = Table(seller_info, colWidths=[30*mm, 100*mm])
-        buyer_table = Table(buyer_info, colWidths=[30*mm, 100*mm])
+        # Make both columns the same height
+        max_rows = max(len(seller_info), len(buyer_info))
+        while len(seller_info) < max_rows:
+            seller_info.append([''])
+        while len(buyer_info) < max_rows:
+            buyer_info.append([''])
         
-        elements.append(seller_table)
+        # Create parties table (side-by-side columns)
+        parties_data = []
+        for i in range(max_rows):
+            parties_data.append([seller_info[i][0], buyer_info[i][0]])
+            
+        parties_table = Table(parties_data, colWidths=[85*mm, 85*mm])
+        parties_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('TOPPADDING', (0, 0), (-1, -1), 1),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ('RIGHTPADDING', (0, 0), (0, -1), 10),
+            ('LEFTPADDING', (1, 0), (1, -1), 10),
+        ]))
+        elements.append(parties_table)
         elements.append(Spacer(1, 10*mm))
-        elements.append(buyer_table)
-        elements.append(Spacer(1, 10*mm))
         
-        # Add items table
-        items_data = [['Lp.', 'Nazwa', 'Ilość', 'Cena', 'Wartość']]
+        # Add items table with improved styling
         if data.get('is_vat'):
-            items_data[0].extend(['Stawka VAT', 'Kwota VAT', 'Wartość brutto'])
+            col_widths = [10*mm, 50*mm, 15*mm, 20*mm, 20*mm, 15*mm, 20*mm, 20*mm]
+            items_data = [['Lp.', 'Nazwa', 'Ilość', 'Cena netto', 'Wartość netto', 'VAT %', 'Kwota VAT', 'Wartość brutto']]
+        else:
+            col_widths = [10*mm, 80*mm, 15*mm, 20*mm, 45*mm]
+            items_data = [['Lp.', 'Nazwa', 'Ilość', 'Cena', 'Wartość']]
         
         total_net = 0
         total_vat = 0
@@ -164,9 +237,9 @@ def generate_pdf():
             vat_amount = net_value * vat_rate
             gross_value = net_value + vat_amount
             
-            row = [str(i), item['description'], f"{quantity:.2f}", f"{price:.2f}", f"{net_value:.2f}"]
+            row = [str(i), item['description'], f"{quantity:.2f}", f"{price:.2f} zł", f"{net_value:.2f} zł"]
             if data.get('is_vat'):
-                row.extend([f"{vat_rate*100}%", f"{vat_amount:.2f}", f"{gross_value:.2f}"])
+                row.extend([f"{int(vat_rate*100)}%", f"{vat_amount:.2f} zł", f"{gross_value:.2f} zł"])
             
             items_data.append(row)
             
@@ -175,35 +248,91 @@ def generate_pdf():
             total_gross += gross_value
         
         # Add totals row
-        totals_row = ['', '', '', '', f"{total_net:.2f}"]
         if data.get('is_vat'):
-            totals_row.extend([f"{total_vat:.2f}", f"{total_gross:.2f}"])
-        items_data.append(totals_row)
+            items_data.append(['', '', '', '', Paragraph('Razem:', total_style), '', f"{total_vat:.2f} zł", f"{total_gross:.2f} zł"])
+            items_data.append(['', '', '', '', Paragraph('W tym:', styles['Normal']), '', '', ''])
+            items_data.append(['', '', '', '', Paragraph('23% VAT:', styles['Normal']), '23%', f"{total_vat:.2f} zł", f"{total_gross:.2f} zł"])
+        else:
+            items_data.append(['', '', '', Paragraph('Razem:', total_style), f"{total_net:.2f} zł"])
         
-        items_table = Table(items_data, colWidths=[10*mm, 60*mm, 20*mm, 20*mm, 25*mm])
-        items_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-            ('ALIGN', (2, 0), (-1, -1), 'RIGHT'),
-            ('GRID', (0, 0), (-1, -2), 1, colors.black),
-            ('LINEBELOW', (0, -2), (-1, -2), 1, colors.black),
-            ('FONTNAME', (0, 0), (-1, 0), 'DejaVuSans-Bold'),
-            ('FONTNAME', (0, -1), (-1, -1), 'DejaVuSans-Bold'),
-        ]))
+        items_table = Table(items_data, colWidths=col_widths)
+        items_table_style = [
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),      # Lp. centered
+            ('ALIGN', (2, 0), (2, -1), 'CENTER'),      # Quantity centered
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),        # Description left aligned
+            ('ALIGN', (3, 0), (-1, -1), 'RIGHT'),      # All amount columns right aligned
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),    # Middle vertical alignment
+            ('GRID', (0, 0), (-1, -2), 0.5, colors.black),  # Thinner grid lines
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # Header background
+            ('FONTNAME', (0, 0), (-1, 0), 'DejaVuSans-Bold'),  # Bold header
+            ('FONTNAME', (0, -1), (-1, -1), 'DejaVuSans-Bold'),  # Bold totals
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]
         
+        # Add special styling for the footer rows
+        if data.get('is_vat'):
+            items_table_style.extend([
+                ('SPAN', (0, -3), (3, -3)),  # Span "Razem" across first four columns
+                ('SPAN', (0, -2), (3, -2)),  # Span "W tym" across first four columns
+                ('SPAN', (0, -1), (3, -1)),  # Span "23% VAT" across first four columns
+                ('LINEBELOW', (0, -4), (-1, -4), 1, colors.black),
+                ('LINEABOVE', (0, -3), (-1, -3), 1, colors.black),
+                ('GRID', (0, -3), (-1, -1), 0, colors.white),  # Remove grid for footer rows
+            ])
+        else:
+            items_table_style.extend([
+                ('SPAN', (0, -1), (2, -1)),  # Span "Razem" across first three columns
+                ('LINEBELOW', (0, -2), (-1, -2), 1, colors.black),
+                ('LINEABOVE', (0, -1), (-1, -1), 1, colors.black),
+                ('GRID', (0, -1), (-1, -1), 0, colors.white),  # Remove grid for footer row
+            ])
+        
+        items_table.setStyle(TableStyle(items_table_style))
         elements.append(items_table)
-        elements.append(Spacer(1, 10*mm))
+        elements.append(Spacer(1, 7*mm))
         
         # Add amount in words
-        elements.append(Paragraph(f"Słownie: {number_to_words(int(total_gross))} złotych", styles['Normal']))
+        elements.append(Paragraph(f"Słownie: {number_to_words(int(total_gross))} złotych {int((total_gross % 1) * 100):02d}/100", styles['Normal']))
         
         # Add payment info
-        elements.append(Spacer(1, 10*mm))
-        elements.append(Paragraph(f"Sposób płatności: {data['payment_method']}", styles['Normal']))
+        elements.append(Spacer(1, 8*mm))
+        
+        payment_info = [
+            [Paragraph('Sposób płatności:', label_style), Paragraph(data['payment_method'], styles['Normal'])]
+        ]
+        
         if data['payment_method'] == 'przelew':
-            elements.append(Paragraph(f"Numer konta: {data.get('seller_bank_account', '')}", styles['Normal']))
+            payment_info.append(
+                [Paragraph('Numer konta:', label_style), Paragraph(data.get('seller_bank_account', ''), styles['Normal'])]
+            )
             if data.get('seller_bank_name'):
-                elements.append(Paragraph(f"Bank: {data['seller_bank_name']}", styles['Normal']))
+                payment_info.append(
+                    [Paragraph('Bank:', label_style), Paragraph(data['seller_bank_name'], styles['Normal'])]
+                )
+        
+        payment_table = Table(payment_info, colWidths=[35*mm, 135*mm])
+        payment_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 1),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ]))
+        elements.append(payment_table)
+        
+        # Add signature fields
+        elements.append(Spacer(1, 20*mm))
+        
+        signature_data = [
+            [Paragraph('Wystawił:', label_style), '', Paragraph('Odebrał:', label_style)],
+            ['....................................', '', '....................................']
+        ]
+        signature_table = Table(signature_data, colWidths=[70*mm, 30*mm, 70*mm])
+        signature_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(signature_table)
         
         # Build PDF
         doc.build(elements)
