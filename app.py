@@ -151,6 +151,13 @@ def generate_pdf():
             alignment=2,  # Right alignment
         )
 
+        footnote_style = ParagraphStyle(
+            'Footnote',
+            parent=styles['Normal'],
+            fontSize=8,
+            alignment=0,  # Left alignment
+        )
+
         elements = []
         
         # Create top section with invoice title and dates
@@ -161,7 +168,6 @@ def generate_pdf():
         header_data = [
             ['', Paragraph(f"Miejsce wystawienia: {place}", header_style)],
             ['', Paragraph(f"Data wystawienia: {data['issue_date']}", header_style)],
-            ['', Paragraph(f"Data płatności: {data['due_date']}", header_style)]
         ]
         header_table = Table(header_data, colWidths=[100*mm, 70*mm])
         header_table.setStyle(TableStyle([
@@ -171,7 +177,7 @@ def generate_pdf():
         elements.append(Spacer(1, 5*mm))
         
         # Add centered title
-        title = f"{'FAKTURA VAT' if data.get('is_vat') else 'RACHUNEK'} {data['invoice_number']}"
+        title = f"{'FAKTURA VAT' if data.get('is_vat') else 'FAKTURA'} {data['invoice_number']}"
         elements.append(Paragraph(title, title_style))
         elements.append(Spacer(1, 5*mm))
         
@@ -184,6 +190,10 @@ def generate_pdf():
         
         if data.get('seller_has_nip'):
             seller_info.append([Paragraph(f"NIP: {data['seller_nip']}", styles['Normal'])])
+        else:
+            # Dodaj PESEL jeśli jest dostępny
+            if data.get('seller_pesel'):
+                seller_info.append([Paragraph(f"PESEL: {data['seller_pesel']}", styles['Normal'])])
         
         buyer_info = [
             [Paragraph('Nabywca:', label_style)],
@@ -219,11 +229,11 @@ def generate_pdf():
         
         # Add items table with improved styling
         if data.get('is_vat'):
-            col_widths = [10*mm, 50*mm, 15*mm, 20*mm, 20*mm, 15*mm, 20*mm, 20*mm]
-            items_data = [['Lp.', 'Nazwa', 'Ilość', 'Cena netto', 'Wartość netto', 'VAT %', 'Kwota VAT', 'Wartość brutto']]
+            col_widths = [10*mm, 45*mm, 15*mm, 15*mm, 20*mm, 20*mm, 15*mm, 20*mm, 20*mm]
+            items_data = [['Lp.', 'Nazwa towaru lub usługi', 'J.m.', 'Ilość', 'Cena netto', 'Wartość netto', 'VAT %', 'Kwota VAT', 'Wartość brutto']]
         else:
-            col_widths = [10*mm, 80*mm, 15*mm, 20*mm, 45*mm]
-            items_data = [['Lp.', 'Nazwa', 'Ilość', 'Cena', 'Wartość']]
+            col_widths = [10*mm, 70*mm, 15*mm, 15*mm, 20*mm, 40*mm]
+            items_data = [['Lp.', 'Nazwa towaru lub usługi', 'J.m.', 'Ilość', 'Cena', 'Wartość']]
         
         total_net = 0
         total_vat = 0
@@ -237,9 +247,12 @@ def generate_pdf():
             vat_amount = net_value * vat_rate
             gross_value = net_value + vat_amount
             
-            row = [str(i), item['description'], f"{quantity:.2f}", f"{price:.2f} zł", f"{net_value:.2f} zł"]
+            # Domyślna jednostka miary to "usł." jeśli nie podano
+            unit = item.get('unit', 'usł.')
+            
+            row = [str(i), item['description'], unit, f"{quantity:.2f}", f"{price:.2f} PLN", f"{net_value:.2f} PLN"]
             if data.get('is_vat'):
-                row.extend([f"{int(vat_rate*100)}%", f"{vat_amount:.2f} zł", f"{gross_value:.2f} zł"])
+                row.extend([f"{int(vat_rate*100)}%", f"{vat_amount:.2f} PLN", f"{gross_value:.2f} PLN"])
             
             items_data.append(row)
             
@@ -249,18 +262,18 @@ def generate_pdf():
         
         # Add totals row
         if data.get('is_vat'):
-            items_data.append(['', '', '', '', Paragraph('Razem:', total_style), '', f"{total_vat:.2f} zł", f"{total_gross:.2f} zł"])
-            items_data.append(['', '', '', '', Paragraph('W tym:', styles['Normal']), '', '', ''])
-            items_data.append(['', '', '', '', Paragraph('23% VAT:', styles['Normal']), '23%', f"{total_vat:.2f} zł", f"{total_gross:.2f} zł"])
+            items_data.append(['', '', '', '', '', Paragraph('Razem:', total_style), '', f"{total_vat:.2f} PLN", f"{total_gross:.2f} PLN"])
+            items_data.append(['', '', '', '', '', Paragraph('W tym:', styles['Normal']), '', '', ''])
+            items_data.append(['', '', '', '', '', Paragraph('23% VAT:', styles['Normal']), '23%', f"{total_vat:.2f} PLN", f"{total_gross:.2f} PLN"])
         else:
-            items_data.append(['', '', '', Paragraph('Razem:', total_style), f"{total_net:.2f} zł"])
+            items_data.append(['', '', '', '', Paragraph('Razem:', total_style), f"{total_net:.2f} PLN"])
         
         items_table = Table(items_data, colWidths=col_widths)
         items_table_style = [
             ('ALIGN', (0, 0), (0, -1), 'CENTER'),      # Lp. centered
-            ('ALIGN', (2, 0), (2, -1), 'CENTER'),      # Quantity centered
+            ('ALIGN', (2, 0), (3, -1), 'CENTER'),      # J.m. and Quantity centered
             ('ALIGN', (1, 0), (1, -1), 'LEFT'),        # Description left aligned
-            ('ALIGN', (3, 0), (-1, -1), 'RIGHT'),      # All amount columns right aligned
+            ('ALIGN', (4, 0), (-1, -1), 'RIGHT'),      # All amount columns right aligned
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),    # Middle vertical alignment
             ('GRID', (0, 0), (-1, -2), 0.5, colors.black),  # Thinner grid lines
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # Header background
@@ -273,16 +286,16 @@ def generate_pdf():
         # Add special styling for the footer rows
         if data.get('is_vat'):
             items_table_style.extend([
-                ('SPAN', (0, -3), (3, -3)),  # Span "Razem" across first four columns
-                ('SPAN', (0, -2), (3, -2)),  # Span "W tym" across first four columns
-                ('SPAN', (0, -1), (3, -1)),  # Span "23% VAT" across first four columns
+                ('SPAN', (0, -3), (5, -3)),  # Span "Razem" across first columns
+                ('SPAN', (0, -2), (5, -2)),  # Span "W tym" across first columns
+                ('SPAN', (0, -1), (5, -1)),  # Span "23% VAT" across first columns
                 ('LINEBELOW', (0, -4), (-1, -4), 1, colors.black),
                 ('LINEABOVE', (0, -3), (-1, -3), 1, colors.black),
                 ('GRID', (0, -3), (-1, -1), 0, colors.white),  # Remove grid for footer rows
             ])
         else:
             items_table_style.extend([
-                ('SPAN', (0, -1), (2, -1)),  # Span "Razem" across first three columns
+                ('SPAN', (0, -1), (4, -1)),  # Span "Razem" across first columns
                 ('LINEBELOW', (0, -2), (-1, -2), 1, colors.black),
                 ('LINEABOVE', (0, -1), (-1, -1), 1, colors.black),
                 ('GRID', (0, -1), (-1, -1), 0, colors.white),  # Remove grid for footer row
@@ -292,12 +305,7 @@ def generate_pdf():
         elements.append(items_table)
         elements.append(Spacer(1, 7*mm))
         
-        # Add amount in words
-        elements.append(Paragraph(f"Słownie: {number_to_words(int(total_gross))} złotych {int((total_gross % 1) * 100):02d}/100", styles['Normal']))
-        
         # Add payment info
-        elements.append(Spacer(1, 8*mm))
-        
         payment_info = [
             [Paragraph('Sposób płatności:', label_style), Paragraph(data['payment_method'], styles['Normal'])]
         ]
@@ -310,6 +318,9 @@ def generate_pdf():
                 payment_info.append(
                     [Paragraph('Bank:', label_style), Paragraph(data['seller_bank_name'], styles['Normal'])]
                 )
+            payment_info.append(
+                [Paragraph('Termin płatności:', label_style), Paragraph(data['due_date'], styles['Normal'])]
+            )
         
         payment_table = Table(payment_info, colWidths=[35*mm, 135*mm])
         payment_table.setStyle(TableStyle([
@@ -318,6 +329,30 @@ def generate_pdf():
             ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
         ]))
         elements.append(payment_table)
+        elements.append(Spacer(1, 5*mm))
+        
+        # Add "Do zapłaty" i "Słownie"
+        final_amount = total_gross if data.get('is_vat') else total_net
+        elements.append(Paragraph(f"Do zapłaty: {final_amount:.2f} PLN", total_style))
+        elements.append(Spacer(1, 2*mm))
+        
+        # Format kwoty słownie z groszami
+        int_part = int(final_amount)
+        decimal_part = int((final_amount % 1) * 100)
+        
+        elements.append(Paragraph(
+            f"Słownie: {number_to_words(int_part)} {decimal_part:02d}/100 PLN", 
+            styles['Normal']
+        ))
+        
+        # Dodaj informację o zwolnieniu z VAT dla faktur bez VAT
+        if not data.get('is_vat'):
+            elements.append(Spacer(1, 5*mm))
+            elements.append(Paragraph(
+                "Przepis na podstawie którego stosowane jest zwolnienie od podatku (stawka VAT zw.): "
+                "Zwolnienie ze względu na nieprzekroczenie 200 000 PLN obrotu (art. 113 ust 1 i 9 ustawy o VAT).",
+                footnote_style
+            ))
         
         # Add signature fields
         elements.append(Spacer(1, 20*mm))
