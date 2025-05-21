@@ -18,8 +18,8 @@ app = Flask(__name__)
 locale.setlocale(locale.LC_ALL, 'pl_PL.UTF-8')
 
 # Register fonts
-pdfmetrics.registerFont(TTFont('DejaVuSans', 'fonts/DejaVuSans.ttf'))
-pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'fonts/DejaVuSans-Bold.ttf'))
+pdfmetrics.registerFont(TTFont('NunitoSans', 'fonts/NunitoSans-Regular.ttf'))
+pdfmetrics.registerFont(TTFont('NunitoSans-SemiBold', 'fonts/NunitoSans-SemiBold.ttf'))
 
 # Ensure uploads directory exists
 UPLOADS_DIR = 'uploads'
@@ -110,12 +110,12 @@ def generate_pdf():
         
         # Define styles
         styles = getSampleStyleSheet()
-        styles['Heading1'].fontName = 'DejaVuSans-Bold'
+        styles['Heading1'].fontName = 'NunitoSans-SemiBold'
         styles['Heading1'].alignment = 1  # Center alignment
         styles['Heading1'].fontSize = 18
         styles['Heading1'].spaceAfter = 12
 
-        styles['Normal'].fontName = 'DejaVuSans'
+        styles['Normal'].fontName = 'NunitoSans'
         styles['Normal'].fontSize = 10
         styles['Normal'].leading = 14
         
@@ -123,7 +123,7 @@ def generate_pdf():
         wrap_style = ParagraphStyle(
             'Wrap',
             parent=styles['Normal'],
-            fontName='DejaVuSans',
+            fontName='NunitoSans',
             fontSize=9,
             alignment=0,  # Left alignment
             leading=11,
@@ -132,7 +132,7 @@ def generate_pdf():
         header_label_style = ParagraphStyle(
             'HeaderLabel',
             parent=styles['Normal'],
-            fontName='DejaVuSans-Bold',
+            fontName='NunitoSans-SemiBold',
             fontSize=9,
             alignment=1,  # Center alignment
             textColor=colors.white,
@@ -141,7 +141,7 @@ def generate_pdf():
         header_value_style = ParagraphStyle(
             'HeaderValue',
             parent=styles['Normal'],
-            fontName='DejaVuSans',
+            fontName='NunitoSans',
             fontSize=10,
             alignment=1,  # Center alignment
             textColor=colors.HexColor('#333333'),
@@ -159,7 +159,7 @@ def generate_pdf():
         label_style = ParagraphStyle(
             'Label',
             parent=styles['Normal'],
-            fontName='DejaVuSans-Bold',
+            fontName='NunitoSans-SemiBold',
             fontSize=11,
             alignment=0,  # Left alignment
             textColor=colors.HexColor('#333333'),
@@ -168,7 +168,7 @@ def generate_pdf():
         total_style = ParagraphStyle(
             'Total',
             parent=styles['Normal'],
-            fontName='DejaVuSans-Bold',
+            fontName='NunitoSans-SemiBold',
             fontSize=11,
             alignment=2,  # Right alignment
             textColor=colors.HexColor('#333333'),
@@ -184,97 +184,102 @@ def generate_pdf():
 
         elements = []
         
-        # Create top section with invoice title and dates
-        today = datetime.now().strftime('%d.%m.%Y')
+        # Header tables for place and date of issue (right side, stacked)
         place = data.get('place_of_issue', 'Wrocław')
-
-        # Header table with improved layout
-        header_data = [
+        place_table = Table([
             [Paragraph('Miejsce wystawienia', header_label_style)],
-            [Paragraph(place, header_value_style)],
-            [Spacer(1, 3*mm)],  # Add spacing between tables
+            [Paragraph(place, header_value_style)]
+        ], colWidths=[55*mm])
+        place_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#333333')),
+            ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
+            ('BACKGROUND', (0, 1), (0, 1), colors.HexColor('#F5F5F5')),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (0, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (0, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (0, -1), 4),
+            ('GRID', (0, 0), (0, 1), 0.5, colors.HexColor('#CCCCCC')),
+        ]))
+        date_table = Table([
             [Paragraph('Data wystawienia', header_label_style)],
             [Paragraph(data['issue_date'], header_value_style)]
-        ]
-        header_table = Table(header_data, colWidths=[85*mm])
-        header_table.setStyle(TableStyle([
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#333333')),  # Dark background for first label
-            ('BACKGROUND', (0, 3), (0, 3), colors.HexColor('#333333')),  # Dark background for second label
-            ('BACKGROUND', (0, 1), (0, 1), colors.HexColor('#F5F5F5')),  # Light background for first value
-            ('BACKGROUND', (0, 4), (0, 4), colors.HexColor('#F5F5F5')),  # Light background for second value
-            ('GRID', (0, 0), (-1, 1), 0.5, colors.HexColor('#CCCCCC')),  # Grid for first table
-            ('GRID', (0, 3), (-1, 4), 0.5, colors.HexColor('#CCCCCC')),  # Grid for second table
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ], colWidths=[55*mm])
+        date_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#333333')),
+            ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
+            ('BACKGROUND', (0, 1), (0, 1), colors.HexColor('#F5F5F5')),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (0, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (0, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (0, -1), 4),
+            ('GRID', (0, 0), (0, 1), 0.5, colors.HexColor('#CCCCCC')),
         ]))
-        elements.append(header_table)
+        # Stack place and date tables vertically, align right
+        right_header = Table(
+            [[place_table], [Spacer(1, 2*mm)], [date_table]],
+            colWidths=[55*mm]
+        )
+        right_header.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]))
+        # Add right_header to the top right, with empty space on left
+        elements.append(Table([[None, right_header]], colWidths=[110*mm, 70*mm], style=TableStyle([('VALIGN', (1, 0), (1, 0), 'TOP')])))
         elements.append(Spacer(1, 8*mm))
         
-        # Add centered title with improved styling
+        # Add centered title
         title = f"{'FAKTURA VAT' if data.get('is_vat') else 'FAKTURA'} {data['invoice_number']}"
         elements.append(Paragraph(title, title_style))
         elements.append(Spacer(1, 8*mm))
         
-        # Create seller and buyer info in separate tables
+        # Create separate tables for seller and buyer, side by side
         seller_info = [
-            [Paragraph('Sprzedawca:', label_style)],
+            [Paragraph('Sprzedawca:', ParagraphStyle('SellerHeader', parent=label_style, textColor=colors.white))],
             [Paragraph(data['seller_name'], styles['Normal'])],
             [Paragraph(data['seller_address'], styles['Normal'])]
         ]
-        
         if data.get('seller_has_nip'):
             seller_info.append([Paragraph(f"NIP: {data['seller_nip']}", styles['Normal'])])
         else:
             if data.get('seller_pesel'):
                 seller_info.append([Paragraph(f"PESEL: {data['seller_pesel']}", styles['Normal'])])
-        
+        seller_table = Table(seller_info, colWidths=[80*mm])
+        seller_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#333333')),
+            ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
+            ('FONTNAME', (0, 0), (0, 0), 'NunitoSans-SemiBold'),
+            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#F5F5F5')),
+            ('GRID', (0, 0), (0, -1), 0.5, colors.HexColor('#CCCCCC')),
+            ('TOPPADDING', (0, 0), (0, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (0, -1), 4),
+            ('LEFTPADDING', (0, 0), (0, -1), 4),
+            ('RIGHTPADDING', (0, 0), (0, -1), 4),
+        ]))
         buyer_info = [
-            [Paragraph('Nabywca:', label_style)],
+            [Paragraph('Nabywca:', ParagraphStyle('BuyerHeader', parent=label_style, textColor=colors.white))],
             [Paragraph(data['buyer_name'], styles['Normal'])],
             [Paragraph(data['buyer_address'], styles['Normal'])]
         ]
-        
         if data.get('buyer_has_nip'):
             buyer_info.append([Paragraph(f"NIP: {data['buyer_nip']}", styles['Normal'])])
-        
-        # Create separate tables for seller and buyer
-        seller_table = Table(seller_info, colWidths=[85*mm])
-        seller_table.setStyle(TableStyle([
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('LEFTPADDING', (0, 0), (-1, -1), 4),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#333333')),  # Dark background for header
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),  # White text for header
-            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F5F5F5')),  # Light background for content
-            ('FONTNAME', (0, 0), (-1, 0), 'DejaVuSans-Bold'),  # Bold font for header
-        ]))
-
-        buyer_table = Table(buyer_info, colWidths=[85*mm])
+        buyer_table = Table(buyer_info, colWidths=[80*mm])
         buyer_table.setStyle(TableStyle([
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('LEFTPADDING', (0, 0), (-1, -1), 4),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#333333')),  # Dark background for header
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),  # White text for header
-            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F5F5F5')),  # Light background for content
-            ('FONTNAME', (0, 0), (-1, 0), 'DejaVuSans-Bold'),  # Bold font for header
+            ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#333333')),
+            ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
+            ('FONTNAME', (0, 0), (0, 0), 'NunitoSans-SemiBold'),
+            ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#F5F5F5')),
+            ('GRID', (0, 0), (0, -1), 0.5, colors.HexColor('#CCCCCC')),
+            ('TOPPADDING', (0, 0), (0, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (0, -1), 4),
+            ('LEFTPADDING', (0, 0), (0, -1), 4),
+            ('RIGHTPADDING', (0, 0), (0, -1), 4),
         ]))
-
-        # Create a container table for seller and buyer tables with spacing
-        parties_container = Table([[seller_table, Spacer(1, 10*mm), buyer_table]], colWidths=[85*mm, 10*mm, 85*mm])
-        parties_container.setStyle(TableStyle([
+        # Place seller and buyer tables side by side with a gap
+        parties_row = Table([[buyer_table, None, seller_table]], colWidths=[80*mm, 10*mm, 80*mm])
+        parties_row.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
-        
-        elements.append(parties_container)
+        elements.append(parties_row)
         elements.append(Spacer(1, 10*mm))
         
         # Add items table with improved styling
@@ -332,8 +337,8 @@ def generate_pdf():
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('GRID', (0, 0), (-1, -2), 0.5, colors.HexColor('#CCCCCC')),  # Jaśniejsza siatka
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#F5F5F5')),  # Jaśniejsze tło nagłówka
-            ('FONTNAME', (0, 0), (-1, 0), 'DejaVuSans-Bold'),
-            ('FONTNAME', (0, -1), (-1, -1), 'DejaVuSans-Bold'),
+            ('FONTNAME', (0, 0), (-1, 0), 'NunitoSans-SemiBold'),
+            ('FONTNAME', (0, -1), (-1, -1), 'NunitoSans-SemiBold'),
             ('TOPPADDING', (0, 0), (-1, -1), 6),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ('LEFTPADDING', (0, 0), (-1, -1), 3),
@@ -378,7 +383,7 @@ def generate_pdf():
             ('TOPPADDING', (0, 0), (-1, -1), 4),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
-            ('FONTNAME', (0, 0), (0, -1), 'DejaVuSans-Bold'),
+            ('FONTNAME', (0, 0), (0, -1), 'NunitoSans-SemiBold'),
             ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F5F5F5')),
             ('LEFTPADDING', (0, 0), (0, -1), 4),
             ('RIGHTPADDING', (0, 0), (0, -1), 4),
@@ -407,7 +412,7 @@ def generate_pdf():
             ('ALIGN', (0, 0), (0, -1), 'LEFT'),
             ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('FONTNAME', (0, 0), (0, -1), 'DejaVuSans-Bold'),
+            ('FONTNAME', (0, 0), (0, -1), 'NunitoSans-SemiBold'),
             ('TOPPADDING', (0, 0), (-1, -1), 3),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
             ('LEFTPADDING', (0, 0), (0, -1), 0),
