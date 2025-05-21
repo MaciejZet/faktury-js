@@ -96,7 +96,8 @@ def generate_pdf():
             return jsonify({'error': 'Nieprawidłowy numer NIP nabywcy'}), 400
 
         # Create PDF
-        filename = f"faktura_{data['invoice_number']}.pdf"
+        safe_invoice_number = data['invoice_number'].replace('/', '_')
+        filename = f"faktura_{safe_invoice_number}.pdf"
         filepath = os.path.join(UPLOADS_DIR, filename)
         
         doc = SimpleDocTemplate(
@@ -152,7 +153,7 @@ def generate_pdf():
             parent=styles['Heading1'],
             fontSize=20,
             alignment=1,  # Center alignment
-            spaceAfter=8*mm,
+            spaceAfter=2*mm,
             textColor=colors.HexColor('#333333'),
         )
         
@@ -227,11 +228,6 @@ def generate_pdf():
         elements.append(Table([[None, right_header]], colWidths=[110*mm, 70*mm], style=TableStyle([('VALIGN', (1, 0), (1, 0), 'TOP')])))
         elements.append(Spacer(1, 8*mm))
         
-        # Add centered title
-        title = f"{'FAKTURA VAT' if data.get('is_vat') else 'FAKTURA'} {data['invoice_number']}"
-        elements.append(Paragraph(title, title_style))
-        elements.append(Spacer(1, 8*mm))
-        
         # Create separate tables for seller and buyer, side by side
         seller_info = [
             [Paragraph('Sprzedawca:', ParagraphStyle('SellerHeader', parent=label_style, textColor=colors.white))],
@@ -280,14 +276,18 @@ def generate_pdf():
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
         elements.append(parties_row)
-        elements.append(Spacer(1, 10*mm))
+        elements.append(Spacer(1, 6*mm))
+
+        title = f"{'FAKTURA VAT' if data.get('is_vat') else 'FAKTURA'} {data['invoice_number']}"
+        elements.append(Paragraph(title, title_style))
+        elements.append(Spacer(1, 6*mm))
         
         # Add items table with improved styling
         if data.get('is_vat'):
             col_widths = [10*mm, 60*mm, 15*mm, 15*mm, 20*mm, 20*mm, 15*mm, 20*mm, 20*mm]
             items_data = [['Lp.', 'Nazwa towaru lub usługi', 'J.m.', 'Ilość', 'Cena netto', 'Wartość netto', 'VAT %', 'Kwota VAT', 'Wartość brutto']]
         else:
-            col_widths = [10*mm, 80*mm, 15*mm, 15*mm, 20*mm, 40*mm]
+            col_widths = [10*mm, 80*mm, 15*mm, 15*mm, 25*mm, 30*mm]
             items_data = [['Lp.', 'Nazwa towaru lub usługi', 'J.m.', 'Ilość', 'Cena', 'Wartość']]
         
         total_net = 0
