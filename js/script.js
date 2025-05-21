@@ -42,48 +42,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const amountInWordsGroup = document.getElementById('amountInWordsGroup');
     const amountInWords = document.getElementById('amountInWords');
 
-    addItemButton.addEventListener("click", () => {
-        addNewInvoiceRow();
+    const defaultUnitSelect = document.getElementById('defaultUnit');
+    
+    // Add event listener for default unit change
+    defaultUnitSelect.addEventListener('change', function() {
+        updatePreview();
     });
 
-    function addNewInvoiceRow() {
-        const row = document.createElement("tr");
-        row.classList.add("item-row");
+    addItemButton.addEventListener("click", () => {
+        addItem();
+    });
+
+    function addItem() {
+        const tbody = document.getElementById('itemsTableBody');
+        const row = document.createElement('tr');
+        row.className = 'item-row';
+        
+        const defaultUnit = defaultUnitSelect.value;
+        
         row.innerHTML = `
-            <td><input type="text" class="item-description" placeholder="Opis" required></td>
-            <td><input type="number" class="item-quantity" placeholder="Ilość" min="1" value="1" required></td>
-            <td><input type="number" class="item-price" placeholder="Cena jedn." step="0.01" min="0" required></td>
-            <td class="item-total">0.00</td>
+            <td><input type="text" class="item-description" required></td>
+            <td><input type="number" class="item-quantity" value="1" min="0.01" step="0.01" required> ${defaultUnit}</td>
+            <td><input type="number" class="item-price" value="0.00" min="0" step="0.01" required></td>
+            <td><input type="number" class="item-total" value="0.00" readonly></td>
             <td><button type="button" class="delete-item-btn"><i class="fas fa-trash"></i></button></td>
         `;
-        itemsTableBody.appendChild(row);
-
-        row.style.animation = 'fadeIn 0.3s ease-out';
-
-        row.querySelector(".delete-item-btn").addEventListener("click", () => {
-            row.style.animation = 'fadeOut 0.3s ease-out';
-            setTimeout(() => {
-                row.remove();
-                updatePreview();
-            }, 300);
-        });
-
-        row.querySelectorAll("input").forEach(input => {
-            input.addEventListener("input", updatePreview);
-        });
-
-        const quantityInput = row.querySelector(".item-quantity");
-        const priceInput = row.querySelector(".item-price");
         
-        [quantityInput, priceInput].forEach(input => {
-            input.addEventListener("input", () => {
-                const quantity = parseFloat(quantityInput.value) || 0;
-                const price = parseFloat(priceInput.value) || 0;
-                const total = quantity * price;
-                row.querySelector(".item-total").textContent = formatAmount(total).replace(` ${getCurrencySymbol()}`, "");
-                updatePreview();
-            });
-        });
+        tbody.appendChild(row);
+        updatePreview();
     }
 
     function showToast(message, type = 'success') {
@@ -102,160 +88,129 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updatePreview() {
+        const preview = document.getElementById('invoicePreview');
+        const items = Array.from(document.querySelectorAll('.item-row')).map(row => ({
+            description: row.querySelector('.item-description').value,
+            quantity: row.querySelector('.item-quantity').value,
+            price: row.querySelector('.item-price').value,
+            total: row.querySelector('.item-total').value
+        }));
+
         let totalSum = 0;
-        const items = Array.from(itemsTableBody.querySelectorAll(".item-row")).map(row => {
-            const description = row.querySelector(".item-description").value;
-            const quantity = parseFloat(row.querySelector(".item-quantity").value) || 0;
-            const price = parseFloat(row.querySelector(".item-price").value) || 0;
-            const total = quantity * price;
-            totalSum += total;
-            return { description, quantity, price, total };
+        items.forEach(item => {
+            totalSum += parseFloat(item.total) || 0;
         });
 
-        // Update amount in words
-        if (totalSum > 0) {
-            amountInWordsGroup.style.display = 'block';
-            const amountInWordsText = numberToWords(Math.floor(totalSum));
-            const cents = Math.round((totalSum % 1) * 100);
-            amountInWords.value = `${amountInWordsText} ${cents.toString().padStart(2, '0')}/100 zł`;
-        } else {
-            amountInWordsGroup.style.display = 'none';
-        }
+        const currencySymbol = document.getElementById('currency').value;
+        const isVATExempt = document.getElementById('isVATExempt').checked;
+        const defaultUnit = defaultUnitSelect.value;
+        const paymentMethod = document.getElementById('paymentMethod').value;
+        const bankAccount = document.getElementById('sellerBankAccount').value;
+        const bankName = document.getElementById('sellerBankName').value;
 
-        const logo = localStorage.getItem('companyLogo');
-        const logoHtml = logo ? `<img src="${logo}" class="company-logo" alt="Logo firmy">` : '';
-        const currencySymbol = getCurrencySymbol();
-        const sellerBankAccount = document.getElementById("sellerBankAccount").value;
-        const sellerBankName = document.getElementById("sellerBankName").value;
-        const paymentMethod = document.getElementById("paymentMethod").value;
-        const placeOfIssue = document.getElementById("placeOfIssue").value;
-        const sellerType = document.getElementById("sellerType").value;
-        const buyerType = document.getElementById("buyerType").value;
-
-        const paymentMethods = {
-            'przelew': 'Przelew bankowy',
-            'gotowka': 'Gotówka',
-            'karta': 'Karta płatnicza',
-            'blik': 'BLIK'
-        };
-
-        invoicePreview.innerHTML = `
+        preview.innerHTML = `
             <div class="invoice-header">
-                ${logoHtml ? `<div>${logoHtml}</div>` : '<div></div>'}
-                <div></div>
-                <div>
-                    <table class="invoice-meta">
-                        <tr>
-                            <td class="head">Miejsce wystawienia</td>
-                        </tr>
-                        <tr>
-                            <td class="body">${placeOfIssue || 'Wrocław'}</td>
-                        </tr>
-                        <tr><td></td></tr>
-                        <tr>
-                            <td class="head">Data wystawienia</td>
-                        </tr>
-                        <tr>
-                            <td class="body">${formatDate(document.getElementById("issueDate").value)}</td>
-                        </tr>
-                    </table>
+                <div class="company-logo">
+                    <img id="previewLogo" src="" alt="Logo" style="display: none;">
+                </div>
+                <div class="invoice-title">
+                    ${document.getElementById('sellerType').value === 'sprzedawca' ? 'Rachunek' : 'Faktura VAT'}
+                </div>
+                <div class="invoice-meta">
+                    <div class="head">Data wystawienia:</div>
+                    <div class="body">${document.getElementById('issueDate').value}</div>
+                    <div class="head">Miejsce wystawienia:</div>
+                    <div class="body">${document.getElementById('placeOfIssue').value}</div>
                 </div>
             </div>
 
             <div class="parties-grid">
                 <div class="invoice-party">
-                    <div class="party-header">${buyerType.charAt(0).toUpperCase() + buyerType.slice(1)}</div>
+                    <div class="party-header">${document.getElementById('sellerType').value === 'sprzedawca' ? 'Sprzedawca' : 'Dostawca'}</div>
                     <div class="party-details">
-                        ${document.getElementById("buyerName").value}<br>
-                        ${buyerHasNIP.checked ? `NIP: ${document.getElementById("buyerNIP").value}<br>` : ''}
-                        ${document.getElementById("buyerAddress").value}
+                        ${document.getElementById('sellerName').value}<br>
+                        ${document.getElementById('sellerAddress').value}<br>
+                        ${document.getElementById('sellerHasNIP').checked ? `NIP: ${document.getElementById('sellerNIP').value}` : ''}<br>
+                        ${document.getElementById('sellerBankAccount').value ? `Nr konta: ${document.getElementById('sellerBankAccount').value}` : ''}<br>
+                        ${document.getElementById('sellerBankName').value ? `Bank: ${document.getElementById('sellerBankName').value}` : ''}
                     </div>
                 </div>
                 <div class="invoice-party">
-                    <div class="party-header">${sellerType.charAt(0).toUpperCase() + sellerType.slice(1)}</div>
+                    <div class="party-header">${document.getElementById('buyerType').value === 'nabywca' ? 'Nabywca' : 'Odbiorca'}</div>
                     <div class="party-details">
-                        ${document.getElementById("sellerName").value}<br>
-                        ${sellerHasNIP.checked ? `NIP: ${document.getElementById("sellerNIP").value}<br>` : ''}
-                        ${document.getElementById("sellerAddress").value}
+                        ${document.getElementById('buyerName').value}<br>
+                        ${document.getElementById('buyerAddress').value}<br>
+                        ${document.getElementById('buyerHasNIP').checked ? `NIP: ${document.getElementById('buyerNIP').value}` : ''}
                     </div>
                 </div>
-            </div>
-
-            <div class="invoice-title">
-                ${isVATExempt.checked ? 'Faktura' : 'Faktura VAT'} ${document.getElementById("invoiceNumber").value}
             </div>
 
             <table class="invoice-table">
                 <thead>
                     <tr>
                         <th width="5%">Lp.</th>
-                        <th>Nazwa towaru lub usługi</th>
-                        <th width="10%">J.m.</th>
-                        <th width="8%">Ilość</th>
-                        <th width="12%">Cena netto</th>
-                        <th width="12%">Wartość netto</th>
+                        <th>Nazwa towaru/usługi</th>
+                        <th width="12%">Ilość [${defaultUnit}]</th>
+                        <th width="12%">Cena</th>
+                        <th width="12%">Wartość</th>
+                        ${!isVATExempt ? '<th width="8%">Stawka VAT</th><th width="12%">Kwota VAT</th><th width="12%">Wartość brutto</th>' : ''}
                     </tr>
                 </thead>
                 <tbody>
-                    ${items.map((item, index) => `
-                        <tr>
-                            <td align="center">${index + 1}</td>
-                            <td align="left">${item.description}</td>
-                            <td align="center">szt.</td>
-                            <td align="center">${item.quantity}</td>
-                            <td align="right">${formatAmount(item.price)}</td>
-                            <td align="right">${formatAmount(item.total)}</td>
-                        </tr>
-                    `).join('')}
+                    ${items.map((item, index) => {
+                        const quantity = parseFloat(item.quantity) || 0;
+                        const price = parseFloat(item.price) || 0;
+                        const total = quantity * price;
+                        const vatRate = isVATExempt ? 0 : 23;
+                        const vatAmount = isVATExempt ? 0 : total * (vatRate / 100);
+                        const totalWithVat = total + vatAmount;
+                        
+                        return `
+                            <tr>
+                                <td align="center">${index + 1}</td>
+                                <td>${item.description}</td>
+                                <td align="center">${quantity.toFixed(0)}</td>
+                                <td align="right">${price.toFixed(2)} ${currencySymbol}</td>
+                                <td align="right">${total.toFixed(2)} ${currencySymbol}</td>
+                                ${!isVATExempt ? `
+                                    <td align="center">${vatRate}%</td>
+                                    <td align="right">${vatAmount.toFixed(2)} ${currencySymbol}</td>
+                                    <td align="right">${totalWithVat.toFixed(2)} ${currencySymbol}</td>
+                                ` : ''}
+                            </tr>
+                        `;
+                    }).join('')}
                     <tr>
-                        <td colspan="5" align="right"><strong>Razem:</strong></td>
-                        <td align="right"><strong>${formatAmount(totalSum)}</strong></td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" align="right" class="amount-in-words-row">
-                            <strong>Słownie:</strong> ${amountInWords.value}
-                        </td>
+                        <td colspan="${isVATExempt ? '4' : '7'}" align="right"><strong>Razem:</strong></td>
+                        <td align="right"><strong>${totalSum.toFixed(2)} ${currencySymbol}</strong></td>
                     </tr>
                 </tbody>
             </table>
 
+            ${isVATExempt ? `
+                <div class="vat-exemption">
+                    Przepis na podstawie którego stosowane jest zwolnienie od podatku (stawka VAT zw.): Zwolnienie ze względu na nieprzekroczenie
+200 000 PLN obrotu (art. 113 ust 1 i 9 ustawy o VAT).
+                </div>
+            ` : ''}
+
             <div class="payment-info">
                 <table class="payment-details">
                     <tr>
-                        <td>Sposób płatności:</td>
-                        <td>${paymentMethods[paymentMethod] || 'przelew'}</td>
-                    </tr>
-                    <tr>
                         <td>Termin płatności:</td>
-                        <td>${formatDate(document.getElementById("dueDate").value)}</td>
+                        <td>${document.getElementById('dueDate').value}</td>
                     </tr>
-                    ${sellerBankAccount ? `
                     <tr>
-                        <td>Numer konta:</td>
-                        <td>${sellerBankAccount}</td>
-                    </tr>` : ''}
-                    ${sellerBankName ? `
-                    <tr>
-                        <td>Bank:</td>
-                        <td>${sellerBankName}</td>
-                    </tr>` : ''}
-                    <tr>
-                        <td>Waluta:</td>
-                        <td>${currency.value}</td>
+                        <td>Sposób płatności:</td>
+                        <td>${paymentMethod}</td>
                     </tr>
+                    ${paymentMethod === 'przelew' && bankAccount ? `
+                    <tr>
+                        <td>Numer rachunku:</td>
+                        <td>${bankAccount}${bankName ? ` (${bankName})` : ''}</td>
+                    </tr>
+                    ` : ''}
                 </table>
-            </div>
-
-            ${isVATExempt.checked ? `
-            <div class="vat-exemption">
-                Przepis na podstawie którego stosowane jest zwolnienie od podatku (stawka VAT zw.): 
-                Zwolnienie ze względu na nieprzekroczenie 200 000 PLN obrotu (art. 113 ust 1 i 9 ustawy o VAT).
-            </div>
-            ` : ''}
-
-            <div class="signature-area">
-                <div style="height: 60px;"></div>
-                <div>Podpis osoby upoważnionej do wystawienia</div>
             </div>
         `;
     }
@@ -302,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('issueDate').valueAsDate = new Date();
     document.getElementById('dueDate').valueAsDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
-    addNewInvoiceRow();
+    addItem();
 
     function openModal(action) {
         currentAction = action;
@@ -507,8 +462,13 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (!validateNIP(sellerNIP) || !validateNIP(buyerNIP)) {
-            showToast("Nieprawidłowy numer NIP! Upewnij się, że podany NIP jest poprawny.", 'error');
+        if (sellerHasNIP.checked && !validateNIP(sellerNIP)) {
+            showToast("Nieprawidłowy numer NIP sprzedawcy!", 'error');
+            return;
+        }
+
+        if (buyerHasNIP.checked && !validateNIP(buyerNIP)) {
+            showToast("Nieprawidłowy numer NIP nabywcy!", 'error');
             return;
         }
 
@@ -518,18 +478,79 @@ document.addEventListener("DOMContentLoaded", () => {
         generateBtn.innerHTML = `<span class="spinner"></span> Generowanie...`;
         
         try {
-            const options = {
-                margin: 10,
+            // Create a clone of the invoice preview
+            const element = invoicePreview.cloneNode(true);
+            
+            // Convert all images to data URLs
+            const images = element.getElementsByTagName('img');
+            for (const img of images) {
+                if (img.src) {
+                    try {
+                        const response = await fetch(img.src);
+                        const blob = await response.blob();
+                        const dataUrl = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.readAsDataURL(blob);
+                        });
+                        img.src = dataUrl;
+                    } catch (err) {
+                        console.warn('Image could not be converted:', err);
+                        img.remove();
+                    }
+                }
+            }
+
+            // Set dimensions and styles
+            element.style.width = '210mm';
+            element.style.height = '297mm';
+            element.style.padding = '20mm';
+            element.style.margin = '0';
+            element.style.backgroundColor = '#ffffff';
+            element.style.position = 'absolute';
+            element.style.left = '-9999px';
+            document.body.appendChild(element);
+
+            const opt = {
+                margin: 0,
                 filename: `rachunek_${document.getElementById("invoiceNumber").value}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    logging: true,
+                    windowWidth: 794, // A4 width in pixels at 96 DPI
+                    windowHeight: 1123, // A4 height in pixels at 96 DPI
+                    onclone: function(clonedDoc) {
+                        const clonedElement = clonedDoc.getElementById('invoicePreview');
+                        if (clonedElement) {
+                            clonedElement.style.width = '210mm';
+                            clonedElement.style.height = '297mm';
+                            clonedElement.style.padding = '20mm';
+                            clonedElement.style.margin = '0';
+                            clonedElement.style.backgroundColor = '#ffffff';
+                            clonedElement.style.position = 'relative';
+                            clonedElement.style.left = '0';
+                            clonedElement.style.top = '0';
+                        }
+                    }
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true
+                }
             };
-            await html2pdf().set(options).from(invoicePreview).save();
+
+            await html2pdf().set(opt).from(element).save();
+            document.body.removeChild(element);
             showToast("PDF został pomyślnie wygenerowany");
         } catch (error) {
-            showToast("Wystąpił błąd podczas generowania PDF", 'error');
             console.error("Błąd generowania PDF:", error);
+            showToast("Wystąpił błąd podczas generowania PDF", 'error');
         } finally {
             generateBtn.disabled = false;
             generateBtn.innerHTML = originalText;

@@ -129,10 +129,24 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="isVATExempt"> Faktura bez VAT
-                            </label>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="isVATExempt"> Faktura bez VAT
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="defaultUnit">Domyślna jednostka:</label>
+                                <select id="defaultUnit" name="defaultUnit">
+                                    <option value="szt.">szt.</option>
+                                    <option value="usł.">usł.</option>
+                                    <option value="godz.">godz.</option>
+                                    <option value="kg">kg</option>
+                                    <option value="m">m</option>
+                                    <option value="m2">m²</option>
+                                    <option value="m3">m³</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group" id="amountInWordsGroup" style="display: none;">
                             <label for="amountInWords">Kwota słownie:</label>
@@ -147,9 +161,9 @@
                                 <tr>
                                     <th>Opis</th>
                                     <th>Ilość</th>
-                                    <th>Cena jedn.</th>
+                                    <th>Cena</th>
                                     <th>Suma</th>
-                                    <th>Akcje</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody id="itemsTableBody">

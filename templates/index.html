@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Faktur</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            padding: 0.5rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #bb2d3b;
+            border-color: #b02a37;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: transparent;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+            background-color: #f8f9fa;
+        }
+
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            min-width: 250px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .preview-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+
+        .preview-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Generator Faktur</h1>
+        
+        <form id="invoiceForm">
+            <div class="row">
+                <!-- Seller Information -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Dane Sprzedawcy</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Nazwa</label>
+                                <input type="text" class="form-control" id="sellerName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Adres</label>
+                                <textarea class="form-control" id="sellerAddress" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="sellerHasNIP">
+                                    <label class="form-check-label">Posiada NIP</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" id="sellerNIP" disabled>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Numer konta bankowego</label>
+                                <input type="text" class="form-control" id="sellerBankAccount">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nazwa banku</label>
+                                <input type="text" class="form-control" id="sellerBankName">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buyer Information -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Dane Nabywcy</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Nazwa</label>
+                                <input type="text" class="form-control" id="buyerName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Adres</label>
+                                <textarea class="form-control" id="buyerAddress" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="buyerHasNIP">
+                                    <label class="form-check-label">Posiada NIP</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" id="buyerNIP" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Details -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Szczegóły Faktury</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Numer faktury</label>
+                                <input type="text" class="form-control" id="invoiceNumber" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Data wystawienia</label>
+                                <input type="date" class="form-control" id="issueDate" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Data płatności</label>
+                                <input type="date" class="form-control" id="dueDate" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Sposób płatności</label>
+                                <select class="form-control" id="paymentMethod" required>
+                                    <option value="przelew">Przelew</option>
+                                    <option value="gotówka">Gotówka</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Waluta</label>
+                                <select class="form-control" id="currency" required>
+                                    <option value="PLN">PLN</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="USD">USD</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="isVAT">
+                                    <label class="form-check-label">Faktura VAT</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Pozycje faktury</h5>
+                    <button type="button" class="btn btn-primary" id="addItemButton">
+                        <i class="fas fa-plus"></i> Dodaj pozycję
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Lp.</th>
+                                    <th>Nazwa</th>
+                                    <th>Ilość</th>
+                                    <th>Cena</th>
+                                    <th>Wartość</th>
+                                    <th>Stawka VAT</th>
+                                    <th>Kwota VAT</th>
+                                    <th>Wartość brutto</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between mt-4">
+                <div>
+                    <button type="button" class="btn btn-secondary" id="saveTemplateButton">
+                        <i class="fas fa-save"></i> Zapisz szablon
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="loadTemplateButton">
+                        <i class="fas fa-folder-open"></i> Wczytaj szablon
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-info" id="printPreviewBtn">
+                        <i class="fas fa-print"></i> Podgląd wydruku
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="generatePdfButton">
+                        <i class="fas fa-file-pdf"></i> Generuj PDF
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Template Modal -->
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h4 id="modalTitle">Zapisz szablon</h4>
+            <div class="mb-3">
+                <label class="form-label">Nazwa szablonu</label>
+                <input type="text" class="form-control" id="templateName">
+            </div>
+            <div id="templatesList" class="mb-3" style="display: none;">
+                <!-- Templates will be loaded here -->
+            </div>
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary me-2" id="cancelTemplateAction">Anuluj</button>
+                <button type="button" class="btn btn-primary" id="confirmTemplateAction">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default dates
+            const today = new Date();
+            const dueDate = new Date(today);
+            dueDate.setDate(today.getDate() + 14);
+            
+            document.getElementById('issueDate').valueAsDate = today;
+            document.getElementById('dueDate').valueAsDate = dueDate;
+
+            // Handle NIP visibility
+            document.getElementById('sellerHasNIP').addEventListener('change', function() {
+                const sellerNIP = document.getElementById('sellerNIP');
+                sellerNIP.disabled = !this.checked;
+                sellerNIP.required = this.checked;
+            });
+
+            document.getElementById('buyerHasNIP').addEventListener('change', function() {
+                const buyerNIP = document.getElementById('buyerNIP');
+                buyerNIP.disabled = !this.checked;
+                buyerNIP.required = this.checked;
+            });
+
+            // Add item row
+            document.getElementById('addItemButton').addEventListener('click', function() {
+                const tbody = document.getElementById('itemsTableBody');
+                const row = document.createElement('tr');
+                const rowIndex = tbody.children.length + 1;
+                
+                row.innerHTML = `
+                    <td>${rowIndex}</td>
+                    <td><input type="text" class="form-control" required></td>
+                    <td><input type="number" class="form-control" value="1" min="0.01" step="0.01" required></td>
+                    <td><input type="number" class="form-control" value="0.00" min="0" step="0.01" required></td>
+                    <td><input type="number" class="form-control" readonly></td>
+                    <td>23%</td>
+                    <td><input type="number" class="form-control" readonly></td>
+                    <td><input type="number" class="form-control" readonly></td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm delete-item">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+                updateRowNumbers();
+                setupRowEventListeners(row);
+            });
+
+            // Setup event listeners for a row
+            function setupRowEventListeners(row) {
+                const quantityInput = row.querySelector('td:nth-child(3) input');
+                const priceInput = row.querySelector('td:nth-child(4) input');
+                const totalInput = row.querySelector('td:nth-child(5) input');
+                const vatAmountInput = row.querySelector('td:nth-child(7) input');
+                const grossInput = row.querySelector('td:nth-child(8) input');
+                const deleteButton = row.querySelector('.delete-item');
+
+                function updateCalculations() {
+                    const quantity = parseFloat(quantityInput.value) || 0;
+                    const price = parseFloat(priceInput.value) || 0;
+                    const total = quantity * price;
+                    const vatRate = document.getElementById('isVAT').checked ? 0.23 : 0;
+                    const vatAmount = total * vatRate;
+                    const gross = total + vatAmount;
+
+                    totalInput.value = total.toFixed(2);
+                    vatAmountInput.value = vatAmount.toFixed(2);
+                    grossInput.value = gross.toFixed(2);
+                }
+
+                quantityInput.addEventListener('input', updateCalculations);
+                priceInput.addEventListener('input', updateCalculations);
+
+                deleteButton.addEventListener('click', function() {
+                    row.remove();
+                    updateRowNumbers();
+                });
+            }
+
+            // Update row numbers
+            function updateRowNumbers() {
+                const rows = document.getElementById('itemsTableBody').children;
+                for (let i = 0; i < rows.length; i++) {
+                    rows[i].children[0].textContent = i + 1;
+                }
+            }
+
+            // Show toast message
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                document.getElementById('toastContainer').appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                }, 3000);
+            }
+
+            // Handle form submission
+            document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const items = Array.from(document.getElementById('itemsTableBody').children).map(row => ({
+                    description: row.querySelector('td:nth-child(2) input').value,
+                    quantity: row.querySelector('td:nth-child(3) input').value,
+                    price: row.querySelector('td:nth-child(4) input').value
+                }));
+
+                if (items.length === 0) {
+                    showToast('Dodaj przynajmniej jedną pozycję do faktury!', 'error');
+                    return;
+                }
+
+                const formData = {
+                    seller_name: document.getElementById('sellerName').value,
+                    seller_address: document.getElementById('sellerAddress').value,
+                    seller_has_nip: document.getElementById('sellerHasNIP').checked,
+                    seller_nip: document.getElementById('sellerNIP').value,
+                    seller_bank_account: document.getElementById('sellerBankAccount').value,
+                    seller_bank_name: document.getElementById('sellerBankName').value,
+                    buyer_name: document.getElementById('buyerName').value,
+                    buyer_address: document.getElementById('buyerAddress').value,
+                    buyer_has_nip: document.getElementById('buyerHasNIP').checked,
+                    buyer_nip: document.getElementById('buyerNIP').value,
+                    invoice_number: document.getElementById('invoiceNumber').value,
+                    issue_date: document.getElementById('issueDate').value,
+                    due_date: document.getElementById('dueDate').value,
+                    payment_method: document.getElementById('paymentMethod').value,
+                    currency: document.getElementById('currency').value,
+                    is_vat: document.getElementById('isVAT').checked,
+                    items: items
+                };
+
+                const generateBtn = document.getElementById('generatePdfButton');
+                const originalText = generateBtn.innerHTML;
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<span class="spinner"></span> Generowanie...';
+
+                try {
+                    const response = await fetch('/generate_pdf', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Wystąpił błąd podczas generowania PDF');
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `faktura_${formData.invoice_number}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    showToast('PDF został pomyślnie wygenerowany');
+                } catch (error) {
+                    showToast(error.message, 'error');
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = originalText;
+                }
+            });
+
+            // Template modal handling
+            const templateModal = document.getElementById('templateModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const templateNameInput = document.getElementById('templateName');
+            const templatesList = document.getElementById('templatesList');
+            const confirmTemplateAction = document.getElementById('confirmTemplateAction');
+            const cancelTemplateAction = document.getElementById('cancelTemplateAction');
+            const closeButton = document.querySelector('.close');
+
+            let currentAction = 'save';
+
+            function openModal(action) {
+                currentAction = action;
+                templateModal.style.display = 'block';
+                
+                if (action === 'save') {
+                    modalTitle.textContent = 'Zapisz szablon';
+                    confirmTemplateAction.textContent = 'Zapisz';
+                    templateNameInput.style.display = 'block';
+                    templatesList.style.display = 'none';
+                } else {
+                    modalTitle.textContent = 'Wczytaj szablon';
+                    confirmTemplateAction.textContent = 'Wczytaj';
+                    templateNameInput.style.display = 'none';
+                    templatesList.style.display = 'block';
+                    loadTemplates();
+                }
+            }
+
+            function closeModal() {
+                templateModal.style.display = 'none';
+            }
+
+            document.getElementById('saveTemplateButton').addEventListener('click', () => openModal('save'));
+            document.getElementById('loadTemplateButton').addEventListener('click', () => openModal('load'));
+            closeButton.addEventListener('click', closeModal);
+            cancelTemplateAction.addEventListener('click', closeModal);
+
+            window.addEventListener('click', (e) => {
+                if (e.target === templateModal) {
+                    closeModal();
+                }
+            });
+
+            async function loadTemplates() {
+                try {
+                    const response = await fetch('/load_templates');
+                    const templates = await response.json();
+                    
+                    templatesList.innerHTML = '';
+                    if (Object.keys(templates).length === 0) {
+                        templatesList.innerHTML = '<p>Brak zapisanych szablonów.</p>';
+                        return;
+                    }
+
+                    for (const [name, data] of Object.entries(templates)) {
+                        const item = document.createElement('div');
+                        item.className = 'template-item mb-2 p-2 border rounded';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>${name}</span>
+                                <div>
+                                    <button class="btn btn-sm btn-primary load-template me-2" data-name="${name}">
+                                        <i class="fas fa-download"></i> Wczytaj
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-template" data-name="${name}">
+                                        <i class="fas fa-trash"></i> Usuń
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        templatesList.appendChild(item);
+                    }
+
+                    // Add event listeners for template actions
+                    templatesList.querySelectorAll('.load-template').forEach(button => {
+                        button.addEventListener('click', () => loadTemplate(button.dataset.name));
+                    });
+
+                    templatesList.querySelectorAll('.delete-template').forEach(button => {
+                        button.addEventListener('click', () => deleteTemplate(button.dataset.name));
+                    });
+                } catch (error) {
+                    showToast('Błąd podczas wczytywania szablonów', 'error');
+                }
+            }
+
+            async function saveTemplate() {
+                const templateName = templateNameInput.value.trim();
+                if (!templateName) {
+                    showToast('Nazwa szablonu nie może być pusta', 'error');
+                    return;
+                }
+
+                const formData = {
+                    template_name: templateName,
+                    seller_name: document.getElementById('sellerName').value,
+                    seller_address: document.getElementById('sellerAddress').value,
+                    seller_has_nip: document.getElementById('sellerHasNIP').checked,
+                    seller_nip: document.getElementById('sellerNIP').value,
+                    seller_bank_account: document.getElementById('sellerBankAccount').value,
+                    seller_bank_name: document.getElementById('sellerBankName').value,
+                    buyer_name: document.getElementById('buyerName').value,
+                    buyer_address: document.getElementById('buyerAddress').value,
+                    buyer_has_nip: document.getElementById('buyerHasNIP').checked,
+                    buyer_nip: document.getElementById('buyerNIP').value
+                };
+
+                try {
+                    const response = await fetch('/save_template', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Błąd podczas zapisywania szablonu');
+                    }
+
+                    showToast('Szablon został zapisany pomyślnie');
+                    closeModal();
+                } catch (error) {
+                    showToast(error.message, 'error');
+                }
+            }
+
+            async function loadTemplate(name) {
+                try {
+                    const response = await fetch('/load_templates');
+                    const templates = await response.json();
+                    const template = templates[name];
+
+                    if (!template) {
+                        throw new Error('Nie znaleziono szablonu');
+                    }
+
+                    document.getElementById('sellerName').value = template.seller_name || '';
+                    document.getElementById('sellerAddress').value = template.seller_address || '';
+                    document.getElementById('sellerHasNIP').checked = template.seller_has_nip || false;
+                    document.getElementById('sellerNIP').value = template.seller_nip || '';
+                    document.getElementById('sellerBankAccount').value = template.seller_bank_account || '';
+                    document.getElementById('sellerBankName').value = template.seller_bank_name || '';
+                    document.getElementById('buyerName').value = template.buyer_name || '';
+                    document.getElementById('buyerAddress').value = template.buyer_address || '';
+                    document.getElementById('buyerHasNIP').checked = template.buyer_has_nip || false;
+                    document.getElementById('buyerNIP').value = template.buyer_nip || '';
+
+                    showToast('Szablon został wczytany pomyślnie');
+                    closeModal();
+                } catch (error) {
+                    showToast(error.message, 'error');
+                }
+            }
+
+            async function deleteTemplate(name) {
+                if (!confirm(`Czy na pewno chcesz usunąć szablon "${name}"?`)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/delete_template', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ template_name: name })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Błąd podczas usuwania szablonu');
+                    }
+
+                    showToast('Szablon został usunięty pomyślnie');
+                    loadTemplates();
+                } catch (error) {
+                    showToast(error.message, 'error');
+                }
+            }
+
+            confirmTemplateAction.addEventListener('click', () => {
+                if (currentAction === 'save') {
+                    saveTemplate();
+                }
+            });
+
+            // Print preview
+            document.getElementById('printPreviewBtn').addEventListener('click', function() {
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                    <head>
+                        <title>Podgląd wydruku</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; }
+                            .invoice-preview { padding: 20mm; margin: 0 auto; }
+                            table { border-collapse: collapse; width: 100%; }
+                            th, td { border: 0.5px solid black; padding: 8px; }
+                            @media print {
+                                body { margin: 0; }
+                                .invoice-preview { padding: 0; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="invoice-preview">
+                            ${document.getElementById('invoiceForm').innerHTML}
+                        </div>
+                        <script>
+                            window.onload = function() {
+                                window.print();
+                                setTimeout(function() { window.close(); }, 500);
+                            };
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+            });
+
+            // Add initial item row
+            document.getElementById('addItemButton').click();
+        });
+    </script>
+</body>
+</html>
